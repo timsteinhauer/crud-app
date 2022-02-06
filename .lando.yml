@@ -1,0 +1,44 @@
+name: crudapp
+recipe: laravel
+config:
+  webroot: ./public
+  php: "8.0"
+  omposer_version: 2-latest
+  database: mysql:8.0
+  cache: redis
+
+services:
+  appserver:
+    scanner: false
+    build_as_root:
+      - docker-php-ext-install sockets
+    #run_as_root:
+    #  - composer self-update
+    #run:
+    #  - composer install
+
+  node:
+    type: php
+    build_as_root:
+      # Note that you will want to use the script for the major version of node you want to install
+      # See: https://github.com/nodesource/distributions/blob/master/README.md#installation-instructions
+      - curl -sL https://deb.nodesource.com/setup_12.x | bash -
+      - apt-get install -y nodejs
+  phpmyadmin:
+    type: phpmyadmin
+    hosts:
+      - database
+tooling:
+  node:
+    service: node
+  npm:
+    service: node
+  phpunit:
+    service: appserver
+    description: "Run PHP Unit tests: lando phpunit"
+    cmd: /vendor/bin/phpunit
+
+excludes:
+  - vendor
+  - node_modules
+
