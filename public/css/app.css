@@ -1040,6 +1040,9 @@ select {
 .-mt-px {
   margin-top: -1px;
 }
+.ml-auto {
+  margin-left: auto;
+}
 .mb-0 {
   margin-bottom: 0px;
 }
@@ -1262,6 +1265,9 @@ select {
 .truncate {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.whitespace-nowrap {
   white-space: nowrap;
 }
 .rounded-md {
@@ -1494,6 +1500,9 @@ select {
 }
 .pt-8 {
   padding-top: 2rem;
+}
+.pr-3 {
+  padding-right: 0.75rem;
 }
 .text-left {
   text-align: left;

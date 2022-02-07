@@ -9,5 +9,8 @@ interface CrudChildInterface{
 
     //
 
-    # public function query(): Builder;
+
+    public function tableHead(): array;
+
+    public function mapping($item): array;
 }

@@ -20,27 +20,49 @@ class UserCrud extends CrudMain implements CrudChildInterface
     // livewire default rules array
     public array $rules = [];
 
-    // wordings
-    public array $wordings = [
-        "name" => "Benutzer",
-        "names" => "Benutzer",
-        "no_items" => "Keine Benutzer vorhanden",
-    ];
+    // naming
+    public string $singular = "Benutzer";
+    public string $plural = "Benutzer";
 
 
-    // build the query to load all data
-    // without SEARCH, FILTER or SORTING stuff!
-    // and without all(), or get() or paginate()
-    public function query(): Builder
+
+
+    //
+    // define table Head
+    //
+    public function tableHead(): array
     {
-        return User::query();
+        return [
+            "name" => [
+                "display" => "Name",
+                "sorting" => true,
+            ],
+            "email" => [
+                "display" => "E-Mail",
+                "sorting" => true,
+            ],
+            "roles" => [
+                "display" => "Berechtigungen",
+                "sorting" => false,
+            ],
+            "last_login_at" => [
+                "display" => "Letzter Login",
+                "sorting" => true,
+                "class" => "text-right",
+            ],
+            "created_at" => [
+                "display" => "Erstellt",
+                "sorting" => true,
+                "class" => "text-right",
+            ],
+        ];
     }
 
-
+    //
     // map the model data to the viewable array
+    //
     public function mapping($item): array
     {
-
         return [
             "id" => $item->id,
             "name" => $item->name,
@@ -48,17 +70,13 @@ class UserCrud extends CrudMain implements CrudChildInterface
                 "email" => $item->email,
                 "verified_at" => $item->email_verified_at,
             ],
-            "created_at" => $item->created_at
+            "created_at" => $this->helpDateFormat($item->created_at),
         ];
     }
 
 
 
-
     /*
-
-
-
 
     public function onUpdate(): Builder
     {

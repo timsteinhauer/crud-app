@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Extends;
 
+use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
 use function view;
@@ -12,7 +13,7 @@ class CrudMain extends Component
 {
 
     //
-    //      override and set in child PHP Class          <!-------------------------------
+    //      override and set this stuff in child PHP Class          <!-------------------------------
     //
 
     // like App\\Models\\User
@@ -24,8 +25,15 @@ class CrudMain extends Component
     // livewire default rules array
     public array $rules = [];
 
+    // naming
+    public string $singular = "";
+    public string $plural = "";
 
 
+    //
+    //
+    //
+    //
     //
     //      other optional(!) override stuff             <!---------------------------------
     //
@@ -38,10 +46,19 @@ class CrudMain extends Component
     public bool $useSoftDeleting = false;
 
     //
-    // no create, edit, delete, restore or cloning
+    // handling current user abilities
     //
-    public bool $viewOnlyMode = false;
-
+    public array $allowed = [
+        "create" => true,
+        "open" => true,
+        "edit" => true,
+        "delete" => true,
+        "restore" => true,
+        "clone" => true,
+        // features
+        "show_search" => true,
+        "show_filter" => true,
+    ];
 
     // default page
     public string $currentPage = "index";
@@ -77,6 +94,27 @@ class CrudMain extends Component
     ];
 
     //
+    // wording stuff, witch could be different for other models
+    //
+    public array $wordings = [
+        "name" => "",
+        "names" => "",
+        // index view
+        "no_items" => "Keine Benutzer vorhanden",
+        // header
+        "new" => "Neu +",
+        "search" => "Benutzer suchen...",
+    ];
+
+    //
+    // styling stuff, witch could be different for other models
+    //
+    public array $styling = [
+        "action_column_class" => "text-center",
+        "action_column_style" => "min-width: 120px",
+    ];
+
+    //
     // End of override stuff                        <!---------------------------------
     //
     //
@@ -108,7 +146,9 @@ class CrudMain extends Component
     public array $items = [];
 
     // the pagination stuff
-    public array $pagination = [];
+    public array $paginator = [];
+
+
 
 
     //
@@ -118,6 +158,20 @@ class CrudMain extends Component
     protected array $defaultFilterArray = [
         ["id" => "-", "name" => "-"]
     ];
+
+    //
+    // Helper Methods
+    //
+
+    public function helpDateFormat($str, $format = "d.m.Y"): string
+    {
+        return Carbon::parse($str)->format($format);
+    }
+
+    public function helpDatetimeFormat($str, $format = "d.m.Y H:i"): string
+    {
+        return Carbon::parse($str)->format($format);
+    }
 
 
     //
@@ -133,6 +187,12 @@ class CrudMain extends Component
     {
         // set child classes path
         $this->childPath .= $this->model .'-crud.override';
+
+        // set wordings
+        $this->wordings["name"] = $this->singular;
+        $this->wordings["names"] = $this->plural;
+
+
 
         // mounting everything up
         /*if (method_exists($this, 'getCrudDefaultSortingField')) {
@@ -184,10 +244,37 @@ class CrudMain extends Component
 
 
     //
+    // fix pagination trait, to only refresh when it is necessary
+    //
+
+    public function previousPageFix($pageName = 'page')
+    {
+        $this->previousPage($pageName);
+        $this->refresh();
+    }
+
+    public function nextPageFix($pageName = 'page')
+    {
+        $this->nextPage($pageName);
+        $this->refresh();
+    }
+
+    public function gotoPageFix($page, $pageName = 'page')
+    {
+        $this->gotoPage($page, $pageName);
+        $this->refresh();
+    }
+
+
+
+    //
+    //
+    //
     //
     //          business logic methods
     //
     //
+
 
     //
     // build the main query and get the paginated data
@@ -206,7 +293,7 @@ class CrudMain extends Component
         $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc');
 
         // fire
-        $pagination = $query->paginate($this->perPage);
+        $paginator = $query->paginate($this->perPage);
 
         //
         // map data from objects to viewable arrays
@@ -218,18 +305,25 @@ class CrudMain extends Component
         }
 
         $this->items = [];
-        foreach ($pagination as $item){
+        foreach ($paginator as $item){
             $this->items[] = $this->mapping($item);
         }
 
         // convert
-        $pagination = $pagination->toArray();
+        $paginatorArr = $paginator->toArray();
+        $paginatorArr["hasPages"] = $paginator->hasPages();
+        $paginatorArr["onFirstPage"] = $paginator->onFirstPage();
+        $paginatorArr["currentPage"] = $paginator->currentPage();
+        $paginatorArr["hasMorePages"] = $paginator->hasMorePages();
+        $paginatorArr["elements"] = $paginator->links()["elements"];
 
+#dd($paginator->links()["elements"]);
         // remove data (items)
-        unset($pagination["data"]);
+        unset($paginator["data"]);
 
         // store the rest of the pagination in a public array
-        $this->pagination = $pagination;
+        $this->paginator = $paginatorArr;
+        # dd($paginator);
     }
 
     protected function getQuery(): Builder

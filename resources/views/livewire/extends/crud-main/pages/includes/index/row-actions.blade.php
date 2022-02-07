@@ -1,8 +1,8 @@
-<td class="text-right">
+<td class="{{ $styling["action_column_class"] }}" style="{{ $styling["action_column_style"] }}">
 
     @yield('row-actions-'.$model)
 
-    @if( $viewOnlyMode === false)
+   {{-- @if( $viewOnlyMode === false)--}}
 
         {{--@if( $useSoftDeleting )
             @if( $row->deleted_at === null )
@@ -33,5 +33,5 @@
                 <i class="btn-icon cil-trash"></i>
             </button>
         @endif--}}
-    @endif
+
 </td>
