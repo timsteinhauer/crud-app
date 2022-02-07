@@ -24,6 +24,22 @@ return new class extends Migration
             $table->string('profile_photo_path', 2048)->nullable();
             $table->timestamps();
         });
+
+        // insert default Users
+        $users = [
+            [
+                "name" => "Tim Steinhauer",
+                "email" => "t.steinhauer@high-office.com",
+                "email_verified_at" => now(),
+                "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
+            ]
+        ];
+
+        foreach ($users as $user){
+
+            \App\Models\User::create($user);
+
+        }
     }
 
     /**
