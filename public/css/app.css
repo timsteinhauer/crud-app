@@ -1040,11 +1040,14 @@ select {
 .-mt-px {
   margin-top: -1px;
 }
+.mb-0 {
+  margin-bottom: 0px;
+}
 .ml-auto {
   margin-left: auto;
 }
-.mb-0 {
-  margin-bottom: 0px;
+.mb-3 {
+  margin-bottom: 0.75rem;
 }
 .block {
   display: block;
