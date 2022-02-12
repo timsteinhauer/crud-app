@@ -16,9 +16,10 @@
         @include($path. ".pages.includes.index.layouts.". $indexLayout)
 
         @includeFirst([
-                    $childPath .".index.pagination",
-                    $path. ".pages.includes.index.pagination"
+                    $childPath .".index.footer",
+                    $path. ".pages.includes.index.footer"
                     ])
+
 
 
         {{-- todo filter bauen --}}

@@ -115,6 +115,18 @@ class CrudMain extends Component
     ];
 
     //
+    //
+    //
+    public array $perPageConfig = [
+        ["value" => "10", "name" => "10"],
+        ["value" => "25", "name" => "25"],
+        ["value" => "50", "name" => "50"],
+        ["value" => "100", "name" => "100"],
+        ["value" => "250", "name" => "250"],
+        ["value" => "0", "name" => "Alle"],
+    ];
+
+    //
     // End of override stuff                        <!---------------------------------
     //
     //
@@ -221,13 +233,14 @@ class CrudMain extends Component
 
         if (method_exists($this, 'onUpdate')) {
             // call Child-Class custom updated handling
-            return $this->onUpdate();
+            $this->onUpdate();
         }
+
 
         $onUpdateProp = 'onUpdate_' . str_replace('.', '_', $propName);
         if (method_exists($this, $onUpdateProp)) {
             // call Child-Class custom updated handling for specific property
-            return $this->{$onUpdateProp}();
+            $this->{$onUpdateProp}($propValue);
         }
 
 
@@ -250,19 +263,19 @@ class CrudMain extends Component
     public function previousPageFix($pageName = 'page')
     {
         $this->previousPage($pageName);
-        $this->refresh();
+        $this->loadItems();
     }
 
     public function nextPageFix($pageName = 'page')
     {
         $this->nextPage($pageName);
-        $this->refresh();
+        $this->loadItems();
     }
 
     public function gotoPageFix($page, $pageName = 'page')
     {
         $this->gotoPage($page, $pageName);
-        $this->refresh();
+        $this->loadItems();
     }
 
 
@@ -275,6 +288,13 @@ class CrudMain extends Component
     //
     //
 
+
+    //
+    // reload items on change perPage
+    //
+    protected function onUpdate_perPage($propValue){
+        $this->loadItems();
+    }
 
     //
     // build the main query and get the paginated data
@@ -311,6 +331,8 @@ class CrudMain extends Component
 
         // convert
         $paginatorArr = $paginator->toArray();
+
+        $paginatorArr["total"] = $paginator->total();
         $paginatorArr["hasPages"] = $paginator->hasPages();
         $paginatorArr["onFirstPage"] = $paginator->onFirstPage();
         $paginatorArr["currentPage"] = $paginator->currentPage();
@@ -326,6 +348,9 @@ class CrudMain extends Component
         # dd($paginator);
     }
 
+    //
+    //
+    //
     protected function getQuery(): Builder
     {
         if (method_exists($this, 'query')) {
@@ -336,6 +361,9 @@ class CrudMain extends Component
         return $this->modelPath::query();
     }
 
+    //
+    //
+    //
     protected function searching($query): Builder
     {
 
@@ -354,7 +382,9 @@ class CrudMain extends Component
         return $query;
     }
 
-
+    //
+    //
+    //
     protected function filtering($query): Builder
     {
 
