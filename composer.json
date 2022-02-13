@@ -9,20 +9,20 @@
     "license": "MIT",
     "require": {
         "php": "^8.0",
+        "carlos-meneses/laravel-mpdf": "^2.1",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
+        "imanghafoori/laravel-masterpass": "v2.*",
         "laravel/framework": "^8.75",
         "laravel/horizon": "^5.8",
         "laravel/jetstream": "^2.6",
         "laravel/sanctum": "^2.11",
         "laravel/telescope": "^4.7",
         "laravel/tinker": "^2.5",
-        "livewire/livewire": "^2.5",
-        "predis/predis": "^v1.1",
         "league/flysystem-aws-s3-v3": "1.*",
         "league/flysystem-cached-adapter": "1.1",
-        "carlos-meneses/laravel-mpdf": "^2.1",
-        "imanghafoori/laravel-masterpass": "v2.*"
+        "livewire/livewire": "^2.5",
+        "predis/predis": "^v1.1"
     },
     "require-dev": {
         "facade/ignition": "^2.5",

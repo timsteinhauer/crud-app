@@ -147,7 +147,6 @@ class CrudMain extends Component
     public string $childPath = "cruds."; // see mount()!
 
 
-
     // the config to create the filter view in index header
     public array $filterConfig = [];
 
@@ -159,8 +158,6 @@ class CrudMain extends Component
 
     // the pagination stuff
     public array $paginator = [];
-
-
 
 
     //
@@ -191,19 +188,19 @@ class CrudMain extends Component
     //      main methods
     //
     //
-    public function rules(): array{
+    public function rules(): array
+    {
         return [];
     }
 
     public function mount()
     {
         // set child classes path
-        $this->childPath .= $this->model .'-crud.override';
+        $this->childPath .= $this->model . '-crud.override';
 
         // set wordings
         $this->wordings["name"] = $this->singular;
         $this->wordings["names"] = $this->plural;
-
 
 
         // mounting everything up
@@ -288,11 +285,35 @@ class CrudMain extends Component
     //
     //
 
+    //
+    // add hooks to Crud Main
+    //
+    protected function addBeforeHook($functionName): void
+    {
+        $this->addHook("before", $functionName);
+    }
+    protected function addAfterHook($functionName): void
+    {
+        $this->addHook("after", $functionName);
+    }
+
+    protected function addHook($hookName, $functionName = ""): void
+    {
+        $hookName .= ucfirst($functionName);
+
+        // if hook exists in child class
+        if (method_exists($this, $hookName)) {
+            // call the hook
+            $this->{$hookName}();
+        }
+    }
+
 
     //
     // reload items on change perPage
     //
-    protected function onUpdate_perPage($propValue){
+    protected function onUpdate_perPage($propValue)
+    {
         $this->loadItems();
     }
 
@@ -320,12 +341,12 @@ class CrudMain extends Component
         // and store items them in a separately public array
         //
 
-        if( !method_exists($this, 'mapping')){
+        if (!method_exists($this, 'mapping')) {
             die("Hier läuft etwas ganz dolle falsch! Du musst in einer Child-Class eine Funktion mapping() haben... Wie sie vom Interface vorgegeben wird!");
         }
 
         $this->items = [];
-        foreach ($paginator as $item){
+        foreach ($paginator as $item) {
             $this->items[] = $this->mapping($item);
         }
 
@@ -374,7 +395,7 @@ class CrudMain extends Component
         $search = $this->search;
 
         $query->where(function ($query) use ($search) {
-            foreach ($this->searchProps as $i => $prop){
+            foreach ($this->searchProps as $i => $prop) {
                 $query->orWhere($prop, 'like', '%' . $search . '%');
             }
         });
@@ -403,4 +424,31 @@ class CrudMain extends Component
 
         return $query;
     }
+
+    //
+    // index page handling
+    //
+    public function openIndex()
+    {
+        $this->addBeforeHook(__FUNCTION__);
+
+        // change view
+        $this->currentPage = "index";
+
+        $this->addAfterHook(__FUNCTION__);
+    }
+
+    //
+    // create form handling
+    //
+    public function openCreateForm()
+    {
+        $this->addBeforeHook(__FUNCTION__);
+
+        // change view
+        $this->currentPage = "create";
+
+        $this->addAfterHook(__FUNCTION__);
+    }
+
 }

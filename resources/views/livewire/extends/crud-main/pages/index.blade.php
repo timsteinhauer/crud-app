@@ -1,6 +1,5 @@
 <div class="-index-wrapper">
 
-    <div class="overflow-auto p-md-5">
 
 
         {{--
@@ -35,5 +34,4 @@
 
         @endforeach--}}
 
-    </div>
 </div>
