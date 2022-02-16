@@ -163,6 +163,9 @@ class CrudMain extends Component
     // the model items
     public array $items = [];
 
+    // the array for livewire form bindings
+    public array $form = [];
+
     // the pagination stuff
     public array $paginator = [];
 

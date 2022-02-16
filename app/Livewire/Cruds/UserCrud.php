@@ -25,8 +25,6 @@ class UserCrud extends CrudMain implements CrudChildInterface
     public string $plural = "Benutzer";
 
 
-
-
     //
     // define table Head
     //
@@ -75,6 +73,30 @@ class UserCrud extends CrudMain implements CrudChildInterface
     }
 
 
+    //
+    // create form fields
+    //
+    public function forms(): array
+    {
+        return [
+            [
+                "type" => "text",
+                "title" => "Name",
+                "key" => "form.name",
+                "hide_on_create" => false,
+                "hide_on_edit" => false,
+                "options" => [
+                    "disabled" => false,
+                    "required" => false,
+                    "before" => "",
+                    "after" => "",
+                    "help" => "",
+                    "class" => "",
+                    "style" => "",
+                ],
+            ]
+        ];
+    }
 
     /*
 
