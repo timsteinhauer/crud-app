@@ -33,9 +33,6 @@ class CrudMain extends Component
     public string $singular = "";
     public string $plural = "";
 
-    // do not declare a $rules array ! <----------------
-    // work with the ${Page-Name}FormRules Arrays!
-
 
     //
     //
@@ -45,13 +42,6 @@ class CrudMain extends Component
     //      other optional(!) override stuff             <!---------------------------------
     //
 
-    //
-    // the rules for specific pages
-    //
-    public array $createFormRules = [];
-    public array $editFormRules = [];
-    public array $deleteFormRules = [];
-    public array $restoreFormRules = [];
 
     //
     // allow of soft deleting and restoring
@@ -169,6 +159,8 @@ class CrudMain extends Component
 
     protected string $paginationTheme = 'bootstrap';
 
+    public array $crudRules = [];
+
     //
     // path to livewire views
     //
@@ -176,7 +168,6 @@ class CrudMain extends Component
 
     // path to the folder with all child classes views
     public string $childPath = "cruds."; // see mount()!
-
 
     // the config to create the filter view in index header
     public array $filterConfig = [];
@@ -219,43 +210,47 @@ class CrudMain extends Component
         return Carbon::parse($str)->format($format);
     }
 
-    protected function addFormField($key, $type, $title, $options = [])
+    protected function addFormField($key, $type, $title, array|string $rules = [], $options = [])
     {
-        $this->fields["both"]["form.".$key] = [
-            "key" => "form.".$key,
+        $this->fields["both"]["form." . $key] = [
+            "key" => "form." . $key,
             "type" => $type,
             "title" => $title,
+            "rules" => $rules,
             "options" => $options,
         ];
     }
 
-    protected function addCreateFormField($key, $type, $title, $options = [])
+    protected function addCreateFormField($key, $type, $title, array|string $rules = [], $options = [])
     {
-        $this->fields["create"]["form.".$key] = [
-            "key" => "form.".$key,
+        $this->fields["create"]["form." . $key] = [
+            "key" => "form." . $key,
             "type" => $type,
             "title" => $title,
+            "rules" => $rules,
             "options" => $options,
         ];
     }
 
-    protected function addEditFormField($key, $type, $title, $options = [])
+    protected function addEditFormField($key, $type, $title, array|string $rules = [], $options = [])
     {
-        $this->fields["edit"]["form.".$key] = [
-            "key" => "form.".$key,
+        $this->fields["edit"]["form." . $key] = [
+            "key" => "form." . $key,
             "type" => $type,
             "title" => $title,
+            "rules" => $rules,
             "options" => $options,
         ];
     }
 
     public function getFormField($key, $scope = "both"): array
     {
-        if( !isset($this->fields[$scope]["form.".$key])){
-            dd("Es wird kein FormField mit dem key: ". $key ." in ". __CLASS__ . " definiert");
+        # dd($this->fields);
+        if (!isset($this->fields[$scope]["form." . $key])) {
+            dd("Es wurde kein FormField mit dem key: <b>" . $key . "</b> in " . __CLASS__ . " definiert!");
         }
 
-        return $this->fields[$scope]["form.".$key];
+        return $this->fields[$scope]["form." . $key];
     }
 
 
@@ -264,29 +259,65 @@ class CrudMain extends Component
     //      main methods
     //
     //
-    public function rules(): array
+
+    //
+    // rules stuff
+    //
+    protected function initRules()
     {
-        if( $this->currentPage != "index"){
-            $rules = $this->currentPage."FormRules";
-            return $this->{$rules};
+
+        $rules = [
+            "create" => [],
+            "edit" => [],
+        ];
+
+        foreach ($this->fields as $scope => $fields) {
+            foreach ($fields as $key => $field) {
+
+                // the field has no defined rules
+                if (empty($field["rules"])) {
+                    continue;
+                }
+
+                if ($scope == "both") {
+                    $rules["create"][$key] = $field["rules"];
+                    $rules["edit"][$key] = $field["rules"];
+                } else {
+                    $rules[$scope][$key] = $field["rules"];
+                }
+            }
         }
 
-        return [];
+        $this->crudRules = $rules;
     }
+
+    //
+    //
+    //
 
     //
     // validate only the hole rules Array for current page, if we have some rules.
     //
-    protected function validateCrud(){
-        if( $this->rules() != [] ){
-            $this->validate();
+    protected function validateCrud()
+    {
+        # dd($this->crudRules);
+        $rules = $this->crudRules[$this->currentPage];
+        # dd($rules);
+        if (!empty($rules)) {
+            $this->validate($rules);
         }
     }
 
     public function mount()
     {
-        if( isset($this->rules) ){
-            die('Es darf <b>kein $rules Array</b> in der Child-Klass: <b>'. __CLASS__ .'</b> gesetzt werden!');
+        // we don't allow that array!
+        if (isset($this->rules)) {
+            die('Es darf <b>kein $rules Array</b> in der Child-Klass: <b>' . __CLASS__ . '</b> gesetzt werden!');
+        }
+
+        // the interface defined this method, it must be there
+        if (!method_exists($this, "initFormFields")) {
+            die('Method <b>initFormFields</b> fehlt in der Child-Klass: <b>' . __CLASS__ . '</b>!');
         }
 
         // set child classes path
@@ -301,11 +332,10 @@ class CrudMain extends Component
         //
 
         // set form fields
-        if( !method_exists($this, "initFormFields")){
-            die('Method <b>initFormFields</b> fehlt in der Child-Klass: <b>'. __CLASS__ .'</b>!');
-        }
-
         $this->initFormFields();
+
+        // build rules
+        $this->initRules();
 
         /*if (method_exists($this, 'getCrudDefaultSortingField')) {
             $this->sortField = $this->model::getCrudDefaultSortingField();
@@ -326,16 +356,22 @@ class CrudMain extends Component
 
     public function updated($propName, $propValue)
     {
-        // fix empty rules
-        if (count($this->rules) == 0) {
-            $this->rules = $this->rules();
+        // crud default reloads by updating perPage
+        if( $propName == "perPage"){
+            $this->loadItems();
         }
+
+        // crud default reloads by updating search and go to first page
+        if( $propName == "search" ){
+            $this->gotoPage(1);
+            $this->loadItems();
+        }
+
 
         if (method_exists($this, 'onUpdate')) {
             // call Child-Class custom updated handling
             $this->onUpdate();
         }
-
 
         $onUpdateProp = 'onUpdate_' . str_replace('.', '_', $propName);
         if (method_exists($this, $onUpdateProp)) {
@@ -343,17 +379,18 @@ class CrudMain extends Component
             $this->{$onUpdateProp}($propValue);
         }
 
-
-        if (isset($this->rules[$propName])) {
-            $this->validateOnly($propName);
+        // add live validation on updated
+        if ($this->currentPage == "create" || $this->currentPage == "edit") {
+            $rules = $this->crudRules[$this->currentPage];
+            if (!empty($rules) && isset($rules[$propName])) {
+                $this->validateOnly($propName, $rules);
+            }
         }
     }
 
 
     public function render()
     {
-
-
         return view('livewire.extends.crud-main.index');
     }
 
@@ -397,6 +434,7 @@ class CrudMain extends Component
     {
         $this->addHook("before", $functionName, $passThrough);
     }
+
     protected function addAfterHook($functionName, $passThrough = null): void
     {
         $this->addHook("after", $functionName, $passThrough);
@@ -413,14 +451,6 @@ class CrudMain extends Component
         }
     }
 
-
-    //
-    // reload items on change perPage
-    //
-    protected function onUpdate_perPage($propValue)
-    {
-        $this->loadItems();
-    }
 
     //
     // build the main query and get the paginated data
@@ -530,13 +560,16 @@ class CrudMain extends Component
         return $query;
     }
 
+
     //
     // get the current model data for the given Index from the paginator array
     // notice: We can't use the items array, because it is mapped by the child class mapping()-Method
     //
-    public function getModelFromIndex($index){
+    public function getModelFromIndex($index)
+    {
         return $this->paginator["data"][$index];
     }
+
 
     //
     // index page handling
@@ -561,7 +594,7 @@ class CrudMain extends Component
         $this->addBeforeHook(__FUNCTION__);
 
         // load default data for the create form
-        if( method_exists($this, "defaultCreateFormData")){
+        if (method_exists($this, "defaultCreateFormData")) {
             $this->form = $this->defaultCreateFormData();
         }
 
@@ -572,7 +605,8 @@ class CrudMain extends Component
     }
 
 
-    public function submitCreateForm(){
+    public function submitCreateForm()
+    {
 
         $this->validateCrud();
 
@@ -603,7 +637,8 @@ class CrudMain extends Component
     }
 
 
-    public function submitEditForm(){
+    public function submitEditForm()
+    {
 
         $this->validateCrud();
 

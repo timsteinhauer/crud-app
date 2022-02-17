@@ -21,6 +21,12 @@ class UserCrud extends CrudMain implements CrudChildInterface
     public string $singular = "Benutzer";
     public string $plural = "Benutzer";
 
+    //
+    //      optional override stuff             <!---------------------------------    //
+    //
+    public array $searchProps = ["name", "email"];
+
+    // end
 
     //
     // define table Head
@@ -76,11 +82,12 @@ class UserCrud extends CrudMain implements CrudChildInterface
     public function initFormFields(): void
     {
 
-        $this->addFormField("name", "text", "Name");
+        $this->addFormField("name", "text", "Name","required");
 
-        $this->addCreateFormField("email", "email", "E-Mail");
+        $this->addCreateFormField("email", "email", "E-Mail","required");
 
         $this->addEditFormField("email", "email", "E-Mail",
+            [],
             [
                 "disabled" => true,
             ]
