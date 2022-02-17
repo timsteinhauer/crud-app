@@ -6,7 +6,7 @@
             ])
 
     <tbody>
-    @forelse ($items as $item)
+    @forelse ($items as $index => $item)
 
         @includeFirst([
             $childPath .".index.row",

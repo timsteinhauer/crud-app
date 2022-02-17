@@ -3,7 +3,7 @@
     @if( $allowed["create"] )
         <div class="-new-btn pr-3">
             <button wire:click="openCreateForm()" type="button" class="btn btn-primary whitespace-nowrap">
-                {{ $wordings["new"] ?? 'Neu +'}}
+                {!! $wordings["new"] ?? '<i class="bi bi-plus-lg"></i>'!!}
             </button>
         </div>
     @endif

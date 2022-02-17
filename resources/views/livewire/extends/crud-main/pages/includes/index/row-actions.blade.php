@@ -1,37 +1,39 @@
 <td class="{{ $styling["action_column_class"] }}" style="{{ $styling["action_column_style"] }}">
 
-    @yield('row-actions-'.$model)
+    <button title="{{ $wordings["index"]["edit_btn"] }}" type="button" class="btn btn-sm btn-primary"
+            wire:click="openEditForm({{ $index }})">
+        <i class="bi bi-gear"></i>
+    </button>
 
-   {{-- @if( $viewOnlyMode === false)--}}
+    <button title="{{ $wordings["index"]["delete_btn"] }}" type="button" class="btn btn-sm btn-danger"
+            wire:click="openDeleteForm({{ $index }})">
+        <i class="bi bi-trash"></i>
+    </button>
 
-        {{--@if( $useSoftDeleting )
-            @if( $row->deleted_at === null )
-                <button title="{{ $texts["edit"] }}" type="button" class="btn btn-sm btn-primary"
-                        wire:click="editFormToggle({{ $row->id }})">
-                    <i class="btn-icon cil-cog"></i>
-                </button>
+    {{-- @if( $viewOnlyMode === false)--}}
 
-                <button title="{{ $texts["delete"] }}" type="button" class="btn btn-sm btn-danger"
-                        wire:click="deleteFormToggle({{ $row->id }})">
-                    <i class="btn-icon cil-trash"></i>
-                </button>
-            @else
+    {{--@if( $useSoftDeleting )
+        @if( $row->deleted_at === null )
 
-                <button title="{{ $texts["restore"] }}" type="button" class="btn btn-sm btn-warning"
-                        wire:click="restoreFormToggle({{ $row->id }})">
-                    <i class="btn-icon cil-reload"></i>
-                </button>
-            @endif
-        @else
-            <button title="{{ $texts["edit"] }}" type="button" class="btn btn-sm btn-primary"
-                    wire:click="editFormToggle({{ $row->id }})">
-                <i class="btn-icon cil-cog"></i>
-            </button>
 
             <button title="{{ $texts["delete"] }}" type="button" class="btn btn-sm btn-danger"
                     wire:click="deleteFormToggle({{ $row->id }})">
                 <i class="btn-icon cil-trash"></i>
             </button>
-        @endif--}}
+        @else
+
+            <button title="{{ $texts["restore"] }}" type="button" class="btn btn-sm btn-warning"
+                    wire:click="restoreFormToggle({{ $row->id }})">
+                <i class="btn-icon cil-reload"></i>
+            </button>
+        @endif
+    @else
+        <button title="{{ $texts["edit"] }}" type="button" class="btn btn-sm btn-primary"
+                wire:click="editFormToggle({{ $row->id }})">
+            <i class="btn-icon cil-cog"></i>
+        </button>
+
+
+    @endif--}}
 
 </td>

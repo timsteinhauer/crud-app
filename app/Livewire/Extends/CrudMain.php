@@ -29,12 +29,12 @@ class CrudMain extends Component
     // like user
     public string $model;
 
-    // livewire default rules array
-    public array $rules = [];
-
     // naming
     public string $singular = "";
     public string $plural = "";
+
+    // do not declare a $rules array ! <----------------
+    // work with the ${Page-Name}FormRules Arrays!
 
 
     //
@@ -45,6 +45,13 @@ class CrudMain extends Component
     //      other optional(!) override stuff             <!---------------------------------
     //
 
+    //
+    // the rules for specific pages
+    //
+    public array $createFormRules = [];
+    public array $editFormRules = [];
+    public array $deleteFormRules = [];
+    public array $restoreFormRules = [];
 
     //
     // allow of soft deleting and restoring
@@ -107,17 +114,34 @@ class CrudMain extends Component
         "name" => "",
         "names" => "",
         // index view
-        "no_items" => "Keine Benutzer vorhanden",
+        "no_items" => "Keine Ergebnisse vorhanden",
         // header
-        "new" => "Neu +",
-        "search" => "Benutzer suchen...",
+        "new" => '<i class="bi bi-plus-lg"></i>',
+        "search" => "Suchen...",
+
+        // global buttons
+        "back_btn" => "Zurück",
+
+        // pages specific buttons
+        "index" => [
+            "edit_btn" => "Bearbeiten",
+            "delete_btn" => "Löschen",
+        ],
+        "create" => [
+            "headline" => "erstellen",
+            "submit_btn" => "Erstellen",
+        ],
+        "edit" => [
+            "headline" => "aktualisieren",
+            "submit_btn" => "Aktualisieren",
+        ],
     ];
 
     //
     // styling stuff, witch could be different for other models
     //
     public array $styling = [
-        "action_column_class" => "text-center",
+        "action_column_class" => "text-right",
         "action_column_style" => "min-width: 120px",
     ];
 
@@ -166,6 +190,9 @@ class CrudMain extends Component
     // the array for livewire form bindings
     public array $form = [];
 
+    // store all configs for the form fields
+    public array $fields = [];
+
     // the pagination stuff
     public array $paginator = [];
 
@@ -192,6 +219,45 @@ class CrudMain extends Component
         return Carbon::parse($str)->format($format);
     }
 
+    protected function addFormField($key, $type, $title, $options = [])
+    {
+        $this->fields["both"]["form.".$key] = [
+            "key" => "form.".$key,
+            "type" => $type,
+            "title" => $title,
+            "options" => $options,
+        ];
+    }
+
+    protected function addCreateFormField($key, $type, $title, $options = [])
+    {
+        $this->fields["create"]["form.".$key] = [
+            "key" => "form.".$key,
+            "type" => $type,
+            "title" => $title,
+            "options" => $options,
+        ];
+    }
+
+    protected function addEditFormField($key, $type, $title, $options = [])
+    {
+        $this->fields["edit"]["form.".$key] = [
+            "key" => "form.".$key,
+            "type" => $type,
+            "title" => $title,
+            "options" => $options,
+        ];
+    }
+
+    public function getFormField($key, $scope = "both"): array
+    {
+        if( !isset($this->fields[$scope]["form.".$key])){
+            dd("Es wird kein FormField mit dem key: ". $key ." in ". __CLASS__ . " definiert");
+        }
+
+        return $this->fields[$scope]["form.".$key];
+    }
+
 
     //
     //
@@ -200,11 +266,29 @@ class CrudMain extends Component
     //
     public function rules(): array
     {
+        if( $this->currentPage != "index"){
+            $rules = $this->currentPage."FormRules";
+            return $this->{$rules};
+        }
+
         return [];
+    }
+
+    //
+    // validate only the hole rules Array for current page, if we have some rules.
+    //
+    protected function validateCrud(){
+        if( $this->rules() != [] ){
+            $this->validate();
+        }
     }
 
     public function mount()
     {
+        if( isset($this->rules) ){
+            die('Es darf <b>kein $rules Array</b> in der Child-Klass: <b>'. __CLASS__ .'</b> gesetzt werden!');
+        }
+
         // set child classes path
         $this->childPath .= $this->model . '-crud.override';
 
@@ -212,8 +296,17 @@ class CrudMain extends Component
         $this->wordings["name"] = $this->singular;
         $this->wordings["names"] = $this->plural;
 
-
+        //
         // mounting everything up
+        //
+
+        // set form fields
+        if( !method_exists($this, "initFormFields")){
+            die('Method <b>initFormFields</b> fehlt in der Child-Klass: <b>'. __CLASS__ .'</b>!');
+        }
+
+        $this->initFormFields();
+
         /*if (method_exists($this, 'getCrudDefaultSortingField')) {
             $this->sortField = $this->model::getCrudDefaultSortingField();
         }*/
@@ -259,6 +352,8 @@ class CrudMain extends Component
 
     public function render()
     {
+
+
         return view('livewire.extends.crud-main.index');
     }
 
@@ -298,23 +393,23 @@ class CrudMain extends Component
     //
     // add hooks to Crud Main
     //
-    protected function addBeforeHook($functionName): void
+    protected function addBeforeHook($functionName, $passThrough = null): void
     {
-        $this->addHook("before", $functionName);
+        $this->addHook("before", $functionName, $passThrough);
     }
-    protected function addAfterHook($functionName): void
+    protected function addAfterHook($functionName, $passThrough = null): void
     {
-        $this->addHook("after", $functionName);
+        $this->addHook("after", $functionName, $passThrough);
     }
 
-    protected function addHook($hookName, $functionName = ""): void
+    protected function addHook($hookName, $functionName = "", $passThrough = null): void
     {
         $hookName .= ucfirst($functionName);
 
         // if hook exists in child class
         if (method_exists($this, $hookName)) {
             // call the hook
-            $this->{$hookName}();
+            $this->{$hookName}($passThrough);
         }
     }
 
@@ -436,6 +531,14 @@ class CrudMain extends Component
     }
 
     //
+    // get the current model data for the given Index from the paginator array
+    // notice: We can't use the items array, because it is mapped by the child class mapping()-Method
+    //
+    public function getModelFromIndex($index){
+        return $this->paginator["data"][$index];
+    }
+
+    //
     // index page handling
     //
     public function openIndex()
@@ -448,6 +551,8 @@ class CrudMain extends Component
         $this->addAfterHook(__FUNCTION__);
     }
 
+
+
     //
     // create form handling
     //
@@ -455,8 +560,57 @@ class CrudMain extends Component
     {
         $this->addBeforeHook(__FUNCTION__);
 
+        // load default data for the create form
+        if( method_exists($this, "defaultCreateFormData")){
+            $this->form = $this->defaultCreateFormData();
+        }
+
         // change view
         $this->currentPage = "create";
+
+        $this->addAfterHook(__FUNCTION__);
+    }
+
+
+    public function submitCreateForm(){
+
+        $this->validateCrud();
+
+        $this->addBeforeHook(__FUNCTION__);
+
+        // change view
+        $this->currentPage = "index";
+
+        $this->addAfterHook(__FUNCTION__);
+    }
+
+
+    //
+    // edit form handling
+    //
+    public function openEditForm($index)
+    {
+        $item = $this->getModelFromIndex($index);
+        $this->addBeforeHook(__FUNCTION__, $item);
+
+        // load current edit data in the form
+        $this->form = $item;
+
+        // change view
+        $this->currentPage = "edit";
+
+        $this->addAfterHook(__FUNCTION__, $item);
+    }
+
+
+    public function submitEditForm(){
+
+        $this->validateCrud();
+
+        $this->addBeforeHook(__FUNCTION__);
+
+        // change view
+        $this->currentPage = "index";
 
         $this->addAfterHook(__FUNCTION__);
     }

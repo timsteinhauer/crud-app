@@ -17,9 +17,6 @@ class UserCrud extends CrudMain implements CrudChildInterface
     // like user
     public string $model = "user";
 
-    // livewire default rules array
-    public array $rules = [];
-
     // naming
     public string $singular = "Benutzer";
     public string $plural = "Benutzer";
@@ -46,12 +43,12 @@ class UserCrud extends CrudMain implements CrudChildInterface
             "last_login_at" => [
                 "display" => "Letzter Login",
                 "sorting" => true,
-                "class" => "text-right",
+                "class" => "",
             ],
             "created_at" => [
                 "display" => "Erstellt",
                 "sorting" => true,
-                "class" => "text-right",
+                "class" => "",
             ],
         ];
     }
@@ -76,27 +73,37 @@ class UserCrud extends CrudMain implements CrudChildInterface
     //
     // create form fields
     //
-    public function forms(): array
+    public function initFormFields(): void
     {
-        return [
+
+        $this->addFormField("name", "text", "Name");
+
+        $this->addCreateFormField("email", "email", "E-Mail");
+
+        $this->addEditFormField("email", "email", "E-Mail",
             [
-                "type" => "text",
-                "title" => "Name",
-                "key" => "form.name",
-                "hide_on_create" => false,
-                "hide_on_edit" => false,
-                "options" => [
-                    "disabled" => false,
-                    "required" => false,
-                    "before" => "",
-                    "after" => "",
-                    "help" => "",
-                    "class" => "",
-                    "style" => "",
-                ],
+                "disabled" => true,
             ]
-        ];
+        );
+
     }
+
+    public function beforeOpenEditForm($item)
+    {
+
+        #    dd($item);
+
+    }
+
+    public function defaultCreateFormData(): array
+    {
+
+        return [
+            "name" => "Max Muster",
+        ];
+
+    }
+
 
     /*
 
