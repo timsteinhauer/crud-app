@@ -1,6 +1,6 @@
 <tr class="-row">
 
-    @foreach($this->tableHead() as $key => $headColumn)
+    @foreach($this->tableColumns() as $key => $headColumn)
 
         @if( isset($item[$key]))
             @php( $column = $item[$key])

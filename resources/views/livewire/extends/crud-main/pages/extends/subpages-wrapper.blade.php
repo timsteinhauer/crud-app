@@ -15,7 +15,8 @@
                 {{ $wordings["back_btn"] }}
             </button>
 
-            <button class="btn btn-sm btn-primary ml-3" wire:click="submitCreateForm()">
+            <button class="btn btn-sm {{ $styling[$currentPage]["submit_btn"] }} ml-3"
+                    wire:click="{{ $formActions[$currentPage]["submit_btn"] }}()">
                 {{ $wordings[$currentPage]["submit_btn"] }}
             </button>
         </div>

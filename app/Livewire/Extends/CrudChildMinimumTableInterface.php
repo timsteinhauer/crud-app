@@ -5,11 +5,11 @@ namespace App\Livewire\Extends;
 
 use Illuminate\Database\Eloquent\Builder;
 
-interface CrudMinimumChildInterface{
+interface CrudChildMinimumTableInterface{
 
     // do not declare a $rules array !
 
-    public function tableHead(): array;
+    public function tableColumns(): array;
 
     public function mapping($item): array;
 

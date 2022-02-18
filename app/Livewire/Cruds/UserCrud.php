@@ -2,15 +2,13 @@
 
 namespace App\Livewire\Cruds;
 
-use App\Livewire\Extends\CrudMinimumChildInterface;
+use App\Livewire\Extends\CrudChildMinimumTableInterface;
 use App\Livewire\Extends\CrudMain;
 use App\Models\Basics\Salutation;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 
 
-class UserCrud extends CrudMain implements CrudMinimumChildInterface
+class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
 {
 
     // like App\\Models\\User
@@ -24,16 +22,18 @@ class UserCrud extends CrudMain implements CrudMinimumChildInterface
     public string $plural = "Benutzer";
 
     //
-    //      optional override stuff             <!---------------------------------    //
+    // optional override stuff             <!---------------------------------    //
     //
     public array $searchProps = ["name", "email"];
+
+    public bool $allowLayoutChange = true; // default is false
 
     // end
 
     //
     // define table Head
     //
-    public function tableHead(): array
+    public function tableColumns(): array
     {
         return [
             "salutation_id" => [
@@ -42,6 +42,41 @@ class UserCrud extends CrudMain implements CrudMinimumChildInterface
             ],
             "name" => [
                 "display" => "Name",
+                "sorting" => true,
+            ],
+            "email" => [
+                "display" => "E-Mail",
+                "sorting" => true,
+            ],
+            "roles" => [
+                "display" => "Berechtigungen",
+                "sorting" => false,
+            ],
+            "last_login_at" => [
+                "display" => "Letzter Login",
+                "sorting" => true,
+                "class" => "",
+            ],
+            "created_at" => [
+                "display" => "Erstellt",
+                "sorting" => true,
+                "class" => "",
+            ],
+        ];
+    }
+
+    //
+    // define content for the cards
+    //
+    public function cardLayout(): array
+    {
+        return [
+            "name" => [
+                "display" => "Name",
+                "sorting" => true,
+            ],
+            "salutation_id" => [
+                "display" => "Anrede",
                 "sorting" => true,
             ],
             "email" => [
@@ -82,9 +117,15 @@ class UserCrud extends CrudMain implements CrudMinimumChildInterface
         ];
     }
 
+    //
+    // define the Name for one Item
+    //
+    public function getItemIdentifier($item): string {
+        return $item["salutation"]["name"] ." ". $item["name"];
+    }
 
     //
-    // create form fields
+    // add all fields for these Model
     //
     public function initFormFields(): void
     {
@@ -128,9 +169,9 @@ class UserCrud extends CrudMain implements CrudMinimumChildInterface
 
     }
 
+    // override create method
     public function create($form): void
     {
-
         // handle user model specific create stuff
 
         // set random password
@@ -143,21 +184,5 @@ class UserCrud extends CrudMain implements CrudMinimumChildInterface
     }
 
 
-    public function beforeOpenEditForm($item): void
-    {
 
-        #    dd($item);
-
-    }
-
-
-    /*
-
-    public function onUpdate(): Builder
-    {
-        return User::query();
-    }
-
-
-    */
 }

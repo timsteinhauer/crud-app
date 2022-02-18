@@ -14,6 +14,14 @@ class CrudMain extends Component
 
     //
     //  todo Crud Main Features
+    //  - action buttons
+    //  - restore stuff
+    //  - clone stuff
+    //  - soft delete stuff
+    //
+    //  - table column sorting && card data sorting
+    //  - header filter stuff
+    //
     //
     //  todo SubQuery Sorting
     //
@@ -21,6 +29,7 @@ class CrudMain extends Component
     //
     //
     //
+
 
     //
     //      override and set this stuff in child PHP Class          <!-------------------------------
@@ -51,6 +60,7 @@ class CrudMain extends Component
     // remember to activate $table->softDeletes(); in the migration of your model!
     //
     public bool $useSoftDeleting = false;
+    public bool $useInstantDeleting = false;
 
     //
     // handling current user abilities
@@ -61,7 +71,7 @@ class CrudMain extends Component
         "edit" => true,
         "delete" => true,
         "restore" => true,
-        "clone" => true,
+        # "clone" => true, // todo clone einbauen
         // features
         "show_search" => true,
         "show_filter" => true,
@@ -72,6 +82,9 @@ class CrudMain extends Component
 
     // default index layout style
     public string $indexLayout = "table"; // "table" or "cards"
+
+    // allow layout change
+    public bool $allowLayoutChange = false;
 
     // default searchable props
     public array $searchProps = ["name"];
@@ -128,14 +141,49 @@ class CrudMain extends Component
             "headline" => "aktualisieren",
             "submit_btn" => "Aktualisieren",
         ],
+        "delete" => [
+            "headline" => "wirklich löschen",
+            "message" => "Der Datensatz <b>:name</b> wird gelöscht!",
+            "submit_btn" => "Ja, jetzt löschen",
+        ],
+        "soft_delete" => [
+            "headline" => "archivieren",
+            "message" => "Der Datensatz <b>:name</b> wird archiviert.",
+            "submit_btn" => "Archivieren",
+        ],
+        "restore" => [
+            "headline" => "wiederherstellen",
+            "message" => "Der Datensatz <b>:name</b> wird wiederhergestellt.",
+            "submit_btn" => "Wiederherstellen",
+        ],
     ];
 
     //
     // styling stuff, witch could be different for other models
     //
     public array $styling = [
+        "create" => [
+            "submit_btn" => "btn-primary",
+        ],
+        "edit" => [
+            "submit_btn" => "btn-primary",
+        ],
+        "delete" => [
+            "message" => "bg-danger",
+            "submit_btn" => "btn-danger",
+        ],
+        "soft_delete" => [
+            "message" => "bg-warning",
+            "submit_btn" => "btn-warning"
+        ],
+        "restore" => [
+            "submit_btn" => "btn-success"
+        ],
+        // page index, table layout
         "action_column_class" => "text-right",
         "action_column_style" => "min-width: 120px",
+        // page index, card layout
+        "card_action_class" => "card-footer text-center",
     ];
 
     //
@@ -150,13 +198,71 @@ class CrudMain extends Component
         ["value" => "0", "name" => "Alle"],
     ];
 
+
+    //
+    // overrideable methods
+    //
+
+    public function create($form): void
+    {
+        // create new entity through eloquent
+        $this->modelPath::create($form);
+    }
+
+    public function delete($item): void
+    {
+        // create new entity through eloquent
+        $this->modelPath::find($item["id"])->delete();
+    }
+
+    public function finalDelete($item): void
+    {
+        // create new entity through eloquent
+        $this->modelPath::withTrashed()->find($item["id"])->finalDelete();
+    }
+
+    public function restore($item): void
+    {
+        // create new entity through eloquent
+        $this->modelPath::withTrashed()->find($item["id"])->restore();
+    }
+
+    public function clone($item): void
+    {
+        // todo clone
+    }
+
     //
     // End of override stuff                        <!---------------------------------
     //
+
+    #############################################################################################################
+
     //
     //  do not change something below this line !!!
     //
     //
+
+    //
+    // actions for the different pages
+    //
+    public array $formActions = [
+        "create" => [
+            "submit_btn" => "submitCreateForm",
+        ],
+        "edit" => [
+            "submit_btn" => "submitEditForm",
+        ],
+        "delete" => [
+            "submit_btn" => "submitDeleteForm",
+        ],
+        "soft_delete" => [
+            "submit_btn" => "submitSoftDeleteForm"
+        ],
+        "restore" => [
+            "submit_btn" => "submitRestoreForm"
+        ],
+    ];
 
     use WithPagination;
 
@@ -198,6 +304,8 @@ class CrudMain extends Component
     public array $paginator = [];
 
 
+
+
     //
     //
     // Helper Stuff
@@ -207,6 +315,7 @@ class CrudMain extends Component
     protected array $defaultFilterArray = [
         ["id" => "-", "name" => "-"]
     ];
+
 
     //
     // Helper Methods
@@ -221,6 +330,22 @@ class CrudMain extends Component
         return $array;
     }
 
+    //
+    // :string to item variables
+    //
+    public function parseAttr($string){
+
+        // the interface defined this method, it must be there
+        if (!method_exists($this, "getItemIdentifier")) {
+            die('Method <b>getItemIdentifier</b> fehlt in der Child-Klass: <b>' . __CLASS__ . '</b>!');
+        }
+
+        return str_replace( ":name", $this->getItemIdentifier($this->form), $string);
+    }
+
+    //
+    // date helpers
+    //
     public function helpDateFormat($str, $format = "d.m.Y"): string
     {
         return Carbon::parse($str)->format($format);
@@ -231,6 +356,9 @@ class CrudMain extends Component
         return Carbon::parse($str)->format($format);
     }
 
+    //
+    // form field handling
+    //
     protected function addFormField($key, $type, $title, array|string $rules = [], $config = [])
     {
         $this->fields["both"]["form." . $key] = [
@@ -273,6 +401,10 @@ class CrudMain extends Component
 
         return $this->fields[$scope]["form." . $key];
     }
+
+    //
+    // blade
+    //
 
 
     //
@@ -706,17 +838,13 @@ class CrudMain extends Component
 
         $this->create($this->form);
 
-        // change view
+        $this->refresh();
         $this->currentPage = "index";
 
         $this->addAfterHook(__FUNCTION__);
     }
 
-    public function create($form): void
-    {dd($form);
-        // create new entity through eloquent
-        $this->modelPath::create($form);
-    }
+
 
     //
     // edit form handling
@@ -736,18 +864,82 @@ class CrudMain extends Component
         $this->addAfterHook(__FUNCTION__, $item);
     }
 
-
     public function submitEditForm()
     {
+        $this->addBeforeHook(__FUNCTION__);
 
         $this->validateCrud();
 
-        $this->addBeforeHook(__FUNCTION__);
+        // todo submitEditForm
 
-        // change view
+
+        $this->refresh();
         $this->currentPage = "index";
 
         $this->addAfterHook(__FUNCTION__);
     }
+
+
+    //
+    // delete form handling
+    //
+    public function openDeleteForm($index){
+        $item = $this->getModelFromIndex($index);
+        $this->addBeforeHook(__FUNCTION__, $item);
+
+        // load current edit data and merge them
+        $this->form = $item;
+
+        // change view
+        $this->currentPage = "delete";
+
+        $this->addAfterHook(__FUNCTION__, $item);
+    }
+
+    public function submitDeleteForm()
+    {
+        $this->addBeforeHook(__FUNCTION__);
+
+        // call delete method
+        $this->delete($this->form);
+
+        $this->refresh();
+        $this->currentPage = "index";
+
+        $this->addAfterHook(__FUNCTION__);
+    }
+
+    public function submitInstantDeleteForm($index)
+    {
+        $item = $this->getModelFromIndex($index);
+        $this->addBeforeHook(__FUNCTION__, $item);
+
+        // call delete method
+        $this->delete($item);
+
+        $this->refresh();
+        $this->currentPage = "index";
+
+        $this->addAfterHook(__FUNCTION__, $item);
+    }
+
+
+
+    //
+    // final delete and restore stuff
+    //
+    public function submitFinalDeleteForm()
+    {
+        $this->addBeforeHook(__FUNCTION__);
+
+        // todo submitFinalDeleteForm
+
+
+        $this->refresh();
+        $this->currentPage = "index";
+
+        $this->addAfterHook(__FUNCTION__);
+    }
+
 
 }

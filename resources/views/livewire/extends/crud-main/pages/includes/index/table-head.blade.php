@@ -1,6 +1,6 @@
 <thead>
 <tr>
-    @foreach($this->tableHead() as $colName => $col)
+    @foreach($this->tableColumns() as $colName => $col)
 
         @if( isset($col["sorting"]) && $col["sorting"] === true )
             <th class="-sorting {!! $col["class"] ?? '' !!}
