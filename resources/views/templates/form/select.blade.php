@@ -2,8 +2,7 @@
 
     <span class="input-group-text">{{ $title }}</span>
 
-    <select class="form-select"
-            class="form-control @error($key) is-invalid @enderror"
+    <select class="form-select @error($key) is-invalid @enderror"
             wire:model.debounce.500ms="{{ $key }}"
             {{ isset($config["required"]) && $config["required"] ? "required" : "" }}
             {{ isset($config["disabled"]) && $config["disabled"] ? "disabled" : "" }}

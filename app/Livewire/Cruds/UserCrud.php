@@ -2,14 +2,15 @@
 
 namespace App\Livewire\Cruds;
 
-use App\Livewire\Extends\CrudChildInterface;
+use App\Livewire\Extends\CrudMinimumChildInterface;
 use App\Livewire\Extends\CrudMain;
 use App\Models\Basics\Salutation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Hash;
 
 
-class UserCrud extends CrudMain implements CrudChildInterface
+class UserCrud extends CrudMain implements CrudMinimumChildInterface
 {
 
     // like App\\Models\\User
@@ -88,28 +89,30 @@ class UserCrud extends CrudMain implements CrudChildInterface
     public function initFormFields(): void
     {
 
-        $this->addFormField("salutation_id", "select", "Anrede","required",
+        $this->addFormField("salutation_id", "select", "Anrede",
+            "required",
             [
                 "options" => Salutation::toSelect(true),
                 "value" => Salutation::defaultSelected(),
             ]
         );
 
-        $this->addFormField("name", "text", "Name","required",
+        $this->addFormField("name", "text", "Name",
+            "required",
             [
                 "value" => "Beispiel für ein Standardwert",
             ]
         );
 
         $this->addCreateFormField("email", "email", "E-Mail",
-            "required",
+            "required|email",
             [
                 "placeholder" => "mail@domain.de",
             ]
             );
 
         $this->addEditFormField("email", "email", "E-Mail",
-            [],
+            "",
             [
                 "disabled" => true,
                 "placeholder" => "mail@domain.de",
@@ -117,7 +120,7 @@ class UserCrud extends CrudMain implements CrudChildInterface
         );
 
         $this->addEditFormField("text_example", "text", "text_example",
-            [],
+            "",
             [
                 "value" => "Standardwert",
             ]
@@ -125,7 +128,22 @@ class UserCrud extends CrudMain implements CrudChildInterface
 
     }
 
-    public function beforeOpenEditForm($item)
+    public function create($form): void
+    {
+
+        // handle user model specific create stuff
+
+        // set random password
+        $random = str_shuffle('abcdefghjklmnopqrstuvwxyzABCDEFGHJKLMNOPQRSTUVWXYZ234567890!$%&!$%&!$%&!$%&');
+        $password = substr($random, 0, 12);
+        $form["password"] = Hash::make($password);
+
+        // create new entity through eloquent
+        $this->modelPath::create($form);
+    }
+
+
+    public function beforeOpenEditForm($item): void
     {
 
         #    dd($item);

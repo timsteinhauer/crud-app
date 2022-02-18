@@ -162,7 +162,11 @@ class CrudMain extends Component
 
     protected string $paginationTheme = 'bootstrap';
 
+    // array for all validation rules for every page scope / type
     public array $crudRules = [];
+
+    // same array for custom attribute names
+    public array $crudAttributes = [];
 
     //
     // path to livewire views
@@ -208,9 +212,10 @@ class CrudMain extends Component
     // Helper Methods
     //
 
-    public static function withEmptySelect($withEmptyRow, $array):array{
+    public static function withEmptySelect($withEmptyRow, $array): array
+    {
 
-        if( $withEmptyRow ){
+        if ($withEmptyRow) {
             return array_merge([["id" => null, "name" => "-"]], $array);
         }
         return $array;
@@ -277,7 +282,6 @@ class CrudMain extends Component
     //
 
 
-
     //
     //
     //
@@ -289,9 +293,10 @@ class CrudMain extends Component
     {
         # dd($this->crudRules);
         $rules = $this->crudRules[$this->currentPage];
+       $attributes = $this->crudAttributes[$this->currentPage];
         # dd($rules);
         if (!empty($rules)) {
-            $this->validate($rules);
+            $this->validate($rules, [], $attributes);
         }
     }
 
@@ -351,12 +356,12 @@ class CrudMain extends Component
     public function updated($propName, $propValue)
     {
         // crud default reloads by updating perPage
-        if( $propName == "perPage"){
+        if ($propName == "perPage") {
             $this->loadItems();
         }
 
         // crud default reloads by updating search and go to first page
-        if( $propName == "search" ){
+        if ($propName == "search") {
             $this->gotoPage(1);
             $this->loadItems();
         }
@@ -376,8 +381,9 @@ class CrudMain extends Component
         // add live validation on updated
         if ($this->currentPage == "create" || $this->currentPage == "edit") {
             $rules = $this->crudRules[$this->currentPage];
+            $attributes = $this->crudAttributes[$this->currentPage];
             if (!empty($rules) && isset($rules[$propName])) {
-                $this->validateOnly($propName, $rules);
+                $this->validateOnly($propName, $rules, [], $attributes);
             }
         }
     }
@@ -396,12 +402,17 @@ class CrudMain extends Component
     //
 
     //
-    //      rules stuff
+    //      rules & validation attributes stuff
     //
     protected function initRules()
     {
 
         $rules = [
+            "create" => [],
+            "edit" => [],
+        ];
+
+        $attributes = [
             "create" => [],
             "edit" => [],
         ];
@@ -417,16 +428,26 @@ class CrudMain extends Component
                 if ($scope == "both") {
                     $rules["create"][$key] = $field["rules"];
                     $rules["edit"][$key] = $field["rules"];
+
+                    $attributes["create"][$key] = $field["title"];
+                    $attributes["edit"][$key] = $field["title"];
                 } else {
                     $rules[$scope][$key] = $field["rules"];
+
+                    $attributes[$scope][$key] = $field["title"];
                 }
             }
         }
 
         $this->crudRules = $rules;
+        $this->crudAttributes = $attributes;
     }
 
-    protected function fillFormDefaults(){
+    //
+    // prepare form stuff
+    //
+    protected function fillFormDefaults()
+    {
         $defaults = [
             "create" => [],
             "edit" => [],
@@ -674,10 +695,16 @@ class CrudMain extends Component
 
     public function submitCreateForm()
     {
+        $this->addBeforeHook(__FUNCTION__);
 
         $this->validateCrud();
 
-        $this->addBeforeHook(__FUNCTION__);
+        // the interface defined this method, it must be there
+        if (!method_exists($this, "create")) {
+            die('Method <b>create()</b> fehlt in der Child-Klass: <b>' . __CLASS__ . '</b>!');
+        }
+
+        $this->create($this->form);
 
         // change view
         $this->currentPage = "index";
@@ -685,6 +712,11 @@ class CrudMain extends Component
         $this->addAfterHook(__FUNCTION__);
     }
 
+    public function create($form): void
+    {dd($form);
+        // create new entity through eloquent
+        $this->modelPath::create($form);
+    }
 
     //
     // edit form handling

@@ -5,7 +5,7 @@ namespace App\Livewire\Extends;
 
 use Illuminate\Database\Eloquent\Builder;
 
-interface CrudChildInterface{
+interface CrudMinimumChildInterface{
 
     // do not declare a $rules array !
 
@@ -15,9 +15,5 @@ interface CrudChildInterface{
 
     public function initFormFields(): void;
 
-    //
-    // full stack
-    //
-    public function beforeOpenEditForm($item);
 
 }
