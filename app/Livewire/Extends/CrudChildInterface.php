@@ -20,5 +20,4 @@ interface CrudChildInterface{
     //
     public function beforeOpenEditForm($item);
 
-    public function defaultCreateFormData(): array;
 }

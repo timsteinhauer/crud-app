@@ -4,6 +4,7 @@ namespace App\Livewire\Cruds;
 
 use App\Livewire\Extends\CrudChildInterface;
 use App\Livewire\Extends\CrudMain;
+use App\Models\Basics\Salutation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -34,6 +35,10 @@ class UserCrud extends CrudMain implements CrudChildInterface
     public function tableHead(): array
     {
         return [
+            "salutation_id" => [
+                "display" => "Anrede",
+                "sorting" => true,
+            ],
             "name" => [
                 "display" => "Name",
                 "sorting" => true,
@@ -66,6 +71,7 @@ class UserCrud extends CrudMain implements CrudChildInterface
     {
         return [
             "id" => $item->id,
+            "salutation_id" => $item->salutation->name,
             "name" => $item->name,
             "email" => [
                 "email" => $item->email,
@@ -82,14 +88,38 @@ class UserCrud extends CrudMain implements CrudChildInterface
     public function initFormFields(): void
     {
 
-        $this->addFormField("name", "text", "Name","required");
+        $this->addFormField("salutation_id", "select", "Anrede","required",
+            [
+                "options" => Salutation::toSelect(true),
+                "value" => Salutation::defaultSelected(),
+            ]
+        );
 
-        $this->addCreateFormField("email", "email", "E-Mail","required");
+        $this->addFormField("name", "text", "Name","required",
+            [
+                "value" => "Beispiel für ein Standardwert",
+            ]
+        );
+
+        $this->addCreateFormField("email", "email", "E-Mail",
+            "required",
+            [
+                "placeholder" => "mail@domain.de",
+            ]
+            );
 
         $this->addEditFormField("email", "email", "E-Mail",
             [],
             [
                 "disabled" => true,
+                "placeholder" => "mail@domain.de",
+            ]
+        );
+
+        $this->addEditFormField("text_example", "text", "text_example",
+            [],
+            [
+                "value" => "Standardwert",
             ]
         );
 
@@ -99,15 +129,6 @@ class UserCrud extends CrudMain implements CrudChildInterface
     {
 
         #    dd($item);
-
-    }
-
-    public function defaultCreateFormData(): array
-    {
-
-        return [
-            "name" => "Max Muster",
-        ];
 
     }
 

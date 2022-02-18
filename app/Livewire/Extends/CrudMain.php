@@ -13,9 +13,12 @@ class CrudMain extends Component
 {
 
     //
-    // todo Crud Main Features
+    //  todo Crud Main Features
     //
-    // 1. SubQuery Sorting
+    //  todo SubQuery Sorting
+    //
+    //  todo Multi-Select Fields
+    //
     //
     //
 
@@ -184,12 +187,17 @@ class CrudMain extends Component
     // store all configs for the form fields
     public array $fields = [];
 
+    // store all default values for the form fields
+    public array $formDefaults = [];
+
     // the pagination stuff
     public array $paginator = [];
 
 
     //
+    //
     // Helper Stuff
+    //
     //
 
     protected array $defaultFilterArray = [
@@ -199,6 +207,14 @@ class CrudMain extends Component
     //
     // Helper Methods
     //
+
+    public static function withEmptySelect($withEmptyRow, $array):array{
+
+        if( $withEmptyRow ){
+            return array_merge([["id" => null, "name" => "-"]], $array);
+        }
+        return $array;
+    }
 
     public function helpDateFormat($str, $format = "d.m.Y"): string
     {
@@ -210,36 +226,36 @@ class CrudMain extends Component
         return Carbon::parse($str)->format($format);
     }
 
-    protected function addFormField($key, $type, $title, array|string $rules = [], $options = [])
+    protected function addFormField($key, $type, $title, array|string $rules = [], $config = [])
     {
         $this->fields["both"]["form." . $key] = [
             "key" => "form." . $key,
             "type" => $type,
             "title" => $title,
             "rules" => $rules,
-            "options" => $options,
+            "config" => $config,
         ];
     }
 
-    protected function addCreateFormField($key, $type, $title, array|string $rules = [], $options = [])
+    protected function addCreateFormField($key, $type, $title, array|string $rules = [], $config = [])
     {
         $this->fields["create"]["form." . $key] = [
             "key" => "form." . $key,
             "type" => $type,
             "title" => $title,
             "rules" => $rules,
-            "options" => $options,
+            "config" => $config,
         ];
     }
 
-    protected function addEditFormField($key, $type, $title, array|string $rules = [], $options = [])
+    protected function addEditFormField($key, $type, $title, array|string $rules = [], $config = [])
     {
         $this->fields["edit"]["form." . $key] = [
             "key" => "form." . $key,
             "type" => $type,
             "title" => $title,
             "rules" => $rules,
-            "options" => $options,
+            "config" => $config,
         ];
     }
 
@@ -260,43 +276,14 @@ class CrudMain extends Component
     //
     //
 
-    //
-    // rules stuff
-    //
-    protected function initRules()
-    {
 
-        $rules = [
-            "create" => [],
-            "edit" => [],
-        ];
-
-        foreach ($this->fields as $scope => $fields) {
-            foreach ($fields as $key => $field) {
-
-                // the field has no defined rules
-                if (empty($field["rules"])) {
-                    continue;
-                }
-
-                if ($scope == "both") {
-                    $rules["create"][$key] = $field["rules"];
-                    $rules["edit"][$key] = $field["rules"];
-                } else {
-                    $rules[$scope][$key] = $field["rules"];
-                }
-            }
-        }
-
-        $this->crudRules = $rules;
-    }
 
     //
     //
     //
 
     //
-    // validate only the hole rules Array for current page, if we have some rules.
+    //      validate only the hole rules Array for current page, if we have some rules.
     //
     protected function validateCrud()
     {
@@ -308,6 +295,9 @@ class CrudMain extends Component
         }
     }
 
+    //
+    //
+    //
     public function mount()
     {
         // we don't allow that array!
@@ -336,6 +326,10 @@ class CrudMain extends Component
 
         // build rules
         $this->initRules();
+
+        // set form default selections
+        $this->fillFormDefaults();
+
 
         /*if (method_exists($this, 'getCrudDefaultSortingField')) {
             $this->sortField = $this->model::getCrudDefaultSortingField();
@@ -392,6 +386,81 @@ class CrudMain extends Component
     public function render()
     {
         return view('livewire.extends.crud-main.index');
+    }
+
+
+    //
+    //
+    //      mounting stuff
+    //
+    //
+
+    //
+    //      rules stuff
+    //
+    protected function initRules()
+    {
+
+        $rules = [
+            "create" => [],
+            "edit" => [],
+        ];
+
+        foreach ($this->fields as $scope => $fields) {
+            foreach ($fields as $key => $field) {
+
+                // the field has no defined rules
+                if (empty($field["rules"])) {
+                    continue;
+                }
+
+                if ($scope == "both") {
+                    $rules["create"][$key] = $field["rules"];
+                    $rules["edit"][$key] = $field["rules"];
+                } else {
+                    $rules[$scope][$key] = $field["rules"];
+                }
+            }
+        }
+
+        $this->crudRules = $rules;
+    }
+
+    protected function fillFormDefaults(){
+        $defaults = [
+            "create" => [],
+            "edit" => [],
+        ];
+
+        foreach ($this->fields as $scope => $fields) {
+            foreach ($fields as $key => $field) {
+
+                // the field has no defined default value
+                if (!isset($field["config"]["value"])) {
+                    continue;
+                }
+
+                // build array form key
+                $keys = explode(".", str_replace("form.", "", $key));
+
+                //
+                // todo mehrdimensionales Array abbilden
+                // todo mehrdimensionales Array abbilden
+                // todo mehrdimensionales Array abbilden
+                // todo mehrdimensionales Array abbilden
+                //
+
+                if ($scope == "both") {
+                    $defaults["create"][$keys[0]] = $field["config"]["value"];
+                    $defaults["edit"][$keys[0]] = $field["config"]["value"];
+                } else {
+                    $defaults[$scope][$keys[0]] = $field["config"]["value"];
+                }
+            }
+        }
+
+        $this->formDefaults = $defaults;
+
     }
 
 
@@ -594,9 +663,7 @@ class CrudMain extends Component
         $this->addBeforeHook(__FUNCTION__);
 
         // load default data for the create form
-        if (method_exists($this, "defaultCreateFormData")) {
-            $this->form = $this->defaultCreateFormData();
-        }
+        $this->form = $this->formDefaults["create"];
 
         // change view
         $this->currentPage = "create";
@@ -627,8 +694,9 @@ class CrudMain extends Component
         $item = $this->getModelFromIndex($index);
         $this->addBeforeHook(__FUNCTION__, $item);
 
-        // load current edit data in the form
-        $this->form = $item;
+        // load default data for the edit form and
+        // load current edit data and merge them
+        $this->form = array_merge($this->formDefaults["edit"], $item);
 
         // change view
         $this->currentPage = "edit";
