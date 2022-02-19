@@ -30,12 +30,18 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
 
     // end
 
+
+
     //
     // define table Head
     //
     public function tableColumns(): array
     {
         return [
+            "id" => [
+                "display" => "ID",
+                "sorting" => true,
+            ],
             "salutation_id" => [
                 "display" => "Anrede",
                 "sorting" => true,
@@ -54,8 +60,8 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             ],
             "last_login_at" => [
                 "display" => "Letzter Login",
-                "sorting" => true,
-                "class" => "",
+                "sorting" => false,
+                "class" => "text-nowrap",
             ],
             "created_at" => [
                 "display" => "Erstellt",
@@ -65,40 +71,7 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
         ];
     }
 
-    //
-    // define content for the cards
-    //
-    public function cardLayout(): array
-    {
-        return [
-            "name" => [
-                "display" => "Name",
-                "sorting" => true,
-            ],
-            "salutation_id" => [
-                "display" => "Anrede",
-                "sorting" => true,
-            ],
-            "email" => [
-                "display" => "E-Mail",
-                "sorting" => true,
-            ],
-            "roles" => [
-                "display" => "Berechtigungen",
-                "sorting" => false,
-            ],
-            "last_login_at" => [
-                "display" => "Letzter Login",
-                "sorting" => true,
-                "class" => "",
-            ],
-            "created_at" => [
-                "display" => "Erstellt",
-                "sorting" => true,
-                "class" => "",
-            ],
-        ];
-    }
+
 
     //
     // map the model data to the viewable array
@@ -120,15 +93,22 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
     //
     // define the Name for one Item
     //
-    public function getItemIdentifier($item): string {
-        return $item["salutation"]["name"] ." ". $item["name"];
+    public function getItemIdentifier($item): string
+    {
+        return $item["salutation"]["name"] . " " . $item["name"];
     }
 
     //
-    // add all fields for these Model
+    // add all complex stuff like form fields, filters etc.
     //
-    public function initFormFields(): void
+    public function initCrud(): void
     {
+
+        //
+        // Form Fields
+        //
+
+        $this->addFormField("id", null, "ID","",);
 
         $this->addFormField("salutation_id", "select", "Anrede",
             "required",
@@ -150,7 +130,7 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             [
                 "placeholder" => "mail@domain.de",
             ]
-            );
+        );
 
         $this->addEditFormField("email", "email", "E-Mail",
             "",
@@ -167,6 +147,26 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             ]
         );
 
+        //
+        // Filter
+        //
+
+        $this->addFilter(
+            "email_verified_at",
+            "select",
+            "E-Mail verifiziert",
+            [
+                ["id" => "", "name" => "-"],
+                ["id" => "not-null", "name" => "Verifiziert"],
+                ["id" => "null", "name" => "Nicht verifiziert"],
+            ],
+            "",
+            "email",
+            true,
+            /*function ($query, $selectedValue) {
+                dd($query, $selectedValue);
+            }*/
+        );
     }
 
     // override create method
@@ -182,7 +182,6 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
         // create new entity through eloquent
         $this->modelPath::create($form);
     }
-
 
 
 }

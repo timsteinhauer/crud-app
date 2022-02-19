@@ -22,6 +22,12 @@ class CrudMain extends Component
     //  - table column sorting && card data sorting
     //  - header filter stuff
     //
+    //  todo all field types
+    //  - media upload
+    //  - checkbox
+    //  - date / datetime
+    //
+    //
     //
     //  todo SubQuery Sorting
     //
@@ -60,6 +66,8 @@ class CrudMain extends Component
     // remember to activate $table->softDeletes(); in the migration of your model!
     //
     public bool $useSoftDeleting = false;
+
+    // if true, there is "Do you really want to delete the Item?"-Question
     public bool $useInstantDeleting = false;
 
     //
@@ -177,13 +185,15 @@ class CrudMain extends Component
             "submit_btn" => "btn-warning"
         ],
         "restore" => [
-            "submit_btn" => "btn-success"
+            "submit_btn" => "btn-primary"
         ],
         // page index, table layout
         "action_column_class" => "text-right",
         "action_column_style" => "min-width: 120px",
         // page index, card layout
         "card_action_class" => "card-footer text-center",
+        // colors
+        "filter_active_color" => "text-danger",
     ];
 
     //
@@ -230,6 +240,15 @@ class CrudMain extends Component
     public function clone($item): void
     {
         // todo clone
+    }
+
+    public function cardLayout(): array
+    {
+        // the interface defined this method, it must be there
+        if (!method_exists($this, "tableColumns")) {
+            die('Method <b>tableColumns</b> fehlt in der Child-Klass: <b>' . __CLASS__ . '</b>!');
+        }
+        return $this->tableColumns();
     }
 
     //
@@ -283,10 +302,13 @@ class CrudMain extends Component
     public string $childPath = "cruds."; // see mount()!
 
     // the config to create the filter view in index header
-    public array $filterConfig = [];
+    public array $filterConfigs = [];
 
-    // the config to create the sortable columns view in index.table-header
-    public array $sortingConfig = [];
+    // the callbacks for filers, these are not public!
+    protected array $filterCallbacks = [];
+
+    // the current opened inline filter
+    public string $openedFilterModal = "";
 
     // the model items
     public array $items = [];
@@ -302,8 +324,6 @@ class CrudMain extends Component
 
     // the pagination stuff
     public array $paginator = [];
-
-
 
 
     //
@@ -333,14 +353,15 @@ class CrudMain extends Component
     //
     // :string to item variables
     //
-    public function parseAttr($string){
+    public function parseAttr($string)
+    {
 
         // the interface defined this method, it must be there
         if (!method_exists($this, "getItemIdentifier")) {
             die('Method <b>getItemIdentifier</b> fehlt in der Child-Klass: <b>' . __CLASS__ . '</b>!');
         }
 
-        return str_replace( ":name", $this->getItemIdentifier($this->form), $string);
+        return str_replace(":name", $this->getItemIdentifier($this->form), $string);
     }
 
     //
@@ -359,7 +380,7 @@ class CrudMain extends Component
     //
     // form field handling
     //
-    protected function addFormField($key, $type, $title, array|string $rules = [], $config = [])
+    protected function addFormField($key, $type, $title, array|string $rules = [], $config = []): void
     {
         $this->fields["both"]["form." . $key] = [
             "key" => "form." . $key,
@@ -370,7 +391,7 @@ class CrudMain extends Component
         ];
     }
 
-    protected function addCreateFormField($key, $type, $title, array|string $rules = [], $config = [])
+    protected function addCreateFormField($key, $type, $title, array|string $rules = [], $config = []): void
     {
         $this->fields["create"]["form." . $key] = [
             "key" => "form." . $key,
@@ -381,7 +402,7 @@ class CrudMain extends Component
         ];
     }
 
-    protected function addEditFormField($key, $type, $title, array|string $rules = [], $config = [])
+    protected function addEditFormField($key, $type, $title, array|string $rules = [], $config = []): void
     {
         $this->fields["edit"]["form." . $key] = [
             "key" => "form." . $key,
@@ -402,10 +423,75 @@ class CrudMain extends Component
         return $this->fields[$scope]["form." . $key];
     }
 
-    //
-    // blade
-    //
 
+    //
+    // Filter handling
+    //
+    /**
+     * @param $key
+     * @param $type = ["select", "multi-select"]
+     * @param $title
+     * @param $options = the options for the select-tag
+     * @param string $default = default value for the filter
+     * @param string $position = ["header", "{key}"]
+     * @param bool $searchable
+     * @param callable|null $callback
+     * @return void
+     */
+    protected function addFilter($key, $type, $title, $options, string $default = "", string $position = "header", bool $searchable = false, callable $callback = null): void
+    {
+        $this->filterConfigs[$key] = [
+            "type" => $type,
+            "title" => $title,
+            "options" => $options,
+            "default" => $default,
+            "position" => $position,
+            "searchable" => $searchable,
+        ];
+
+        // the callbacks are protected, so they won't be synced by livewire
+        if ($callback !== null) {
+            $this->filterCallbacks[$key] = $callback;
+        }
+    }
+
+    // is a filter defined for the position at the given table header column key
+    public function hasFilter($positionKey): bool
+    {
+        foreach ($this->filterConfigs as $filterConfig) {
+            if ($filterConfig["position"] === $positionKey) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public function isFilterActive($positionKey): bool
+    {
+
+        foreach ($this->filterConfigs as $filterKey => $filterConfig) {
+            if ($filterConfig["position"] === $positionKey) {
+                return $this->filter[$filterKey] !== $filterConfig["default"];
+            }
+        }
+        return false;
+    }
+
+    public function getFilterConfigAtPosition($positionKey): array
+    {
+
+        foreach ($this->filterConfigs as $filterKey => $filterConfig) {
+            if ($filterConfig["position"] === $positionKey) {
+                return [
+                    "filterConfig" => $filterConfig,
+                    "filterKey" => $filterKey,
+                ];
+            }
+        }
+
+        dd("Fehler. Die Filter-Position " . $positionKey . " müsste vorhanden sein!");
+    }
 
     //
     //
@@ -425,7 +511,7 @@ class CrudMain extends Component
     {
         # dd($this->crudRules);
         $rules = $this->crudRules[$this->currentPage];
-       $attributes = $this->crudAttributes[$this->currentPage];
+        $attributes = $this->crudAttributes[$this->currentPage];
         # dd($rules);
         if (!empty($rules)) {
             $this->validate($rules, [], $attributes);
@@ -443,8 +529,8 @@ class CrudMain extends Component
         }
 
         // the interface defined this method, it must be there
-        if (!method_exists($this, "initFormFields")) {
-            die('Method <b>initFormFields</b> fehlt in der Child-Klass: <b>' . __CLASS__ . '</b>!');
+        if (!method_exists($this, "initCrud")) {
+            die('Method <b>initCrud</b> fehlt in der Child-Klass: <b>' . __CLASS__ . '</b>!');
         }
 
         // set child classes path
@@ -458,8 +544,8 @@ class CrudMain extends Component
         // mounting everything up
         //
 
-        // set form fields
-        $this->initFormFields();
+        // add form fields, add filter, add etc. by Child Class
+        $this->initCrud();
 
         // build rules
         $this->initRules();
@@ -467,10 +553,8 @@ class CrudMain extends Component
         // set form default selections
         $this->fillFormDefaults();
 
-
-        /*if (method_exists($this, 'getCrudDefaultSortingField')) {
-            $this->sortField = $this->model::getCrudDefaultSortingField();
-        }*/
+        // set filter defaults
+        $this->fillFilterDefaults();
 
         // first load of refreshable stuff
         $this->refresh();
@@ -494,6 +578,15 @@ class CrudMain extends Component
 
         // crud default reloads by updating search and go to first page
         if ($propName == "search") {
+            $this->gotoPage(1);
+            $this->loadItems();
+        }
+
+        // crud default reloads by change filter values
+        if ( str_contains($propName, "filter.")) {
+
+            // close modals
+            $this->openedFilterModal = "";
             $this->gotoPage(1);
             $this->loadItems();
         }
@@ -578,7 +671,7 @@ class CrudMain extends Component
     //
     // prepare form stuff
     //
-    protected function fillFormDefaults()
+    protected function fillFormDefaults(): void
     {
         $defaults = [
             "create" => [],
@@ -616,6 +709,16 @@ class CrudMain extends Component
 
     }
 
+    //
+    // prepare Filter Stuff
+    //
+    protected function fillFilterDefaults(): void
+    {
+
+        foreach ($this->filterConfigs as $filterKey => $filterConfig) {
+            $this->filter[$filterKey] = $filterConfig["default"];
+        }
+    }
 
     //
     // fix pagination trait, to only refresh when it is necessary
@@ -766,15 +869,25 @@ class CrudMain extends Component
     protected function filtering($query): Builder
     {
 
-        foreach ($this->filter as $key => $value) {
-            if ($value !== '-') {
+        foreach ($this->filter as $filterKey => $selectedValue) {
 
-                if ($value === 'notNull') {
-                    $query->whereNotNull($key);
-                } elseif ($value === 'isNull') {
-                    $query->whereNull($key);
+            if (isset($this->filterCallbacks[$filterKey])) {
+                //
+                // use custom filter callback to handle the filter query logic
+                //
+                $this->filterCallbacks[$filterKey]($query, $selectedValue);
+
+            } elseif ($selectedValue !== "") {
+
+                //
+                // use default filter logic, when the value is set
+                //
+                if ($selectedValue === 'not-null') {
+                    $query->whereNotNull($filterKey);
+                } elseif ($selectedValue === 'null') {
+                    $query->whereNull($filterKey);
                 } else {
-                    $query->where($key, $value);
+                    $query->where($filterKey, $selectedValue);
                 }
             }
         }
@@ -782,6 +895,16 @@ class CrudMain extends Component
         return $query;
     }
 
+    //
+    // sorting stuff
+    //
+    public function sortBy($field)
+    {
+        $this->sortAsc = !($this->sortField === $field) || !$this->sortAsc;
+        $this->sortField = $field;
+
+        $this->loadItems();
+    }
 
     //
     // get the current model data for the given Index from the paginator array
@@ -883,7 +1006,8 @@ class CrudMain extends Component
     //
     // delete form handling
     //
-    public function openDeleteForm($index){
+    public function openDeleteForm($index)
+    {
         $item = $this->getModelFromIndex($index);
         $this->addBeforeHook(__FUNCTION__, $item);
 

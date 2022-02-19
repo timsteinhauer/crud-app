@@ -13,7 +13,7 @@ interface CrudCompleteChildInterface{
 
     public function mapping($item): array;
 
-    public function initFormFields(): void;
+    public function initCrud(): void;
 
 
     //
