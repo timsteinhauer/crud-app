@@ -24,10 +24,12 @@ class CrudMain extends Component
     //
     //  todo all field types
     //  - media upload
-    //  - checkbox
+    //  - checkbox / radio
     //  - date / datetime
+    //  - range
+    //  - textarea
     //
-    //
+    //  todo gängigen Relations direkt handeln
     //
     //  todo SubQuery Sorting
     //
