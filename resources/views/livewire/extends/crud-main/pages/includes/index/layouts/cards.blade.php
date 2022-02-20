@@ -6,6 +6,7 @@
                 $childPath .".index.card",
                 $path. ".pages.includes.index.card"
                 ])
+
         @endforeach
     </div>
 @else

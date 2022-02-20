@@ -98,12 +98,12 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
         return $item["salutation"]["name"] . " " . $item["name"];
     }
 
+
     //
     // add all complex stuff like form fields, filters etc.
     //
     public function initCrud(): void
     {
-
         //
         // Form Fields
         //

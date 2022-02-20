@@ -3,39 +3,29 @@
         <div class="card-body">
 
             @php( $first = 1)
-            @foreach($this->cardLayout() as $key => $headColumn)
+            @foreach($this->cardLayout() as $columnKey => $headColumn)
 
-                @if( isset($item[$key]))
-                    @php( $column = $item[$key])
+                @if( isset($item[$columnKey]))
 
-                    @if( \View::exists($childPath .'.index.card-row.'.$key) )
-                        @if($first == 1)
-                            @php( $first = 0)
-                            <h5 class="card-title">
-                                @include($childPath .'.index.card-row.'.$key)
-                            </h5>
-                        @else
-                            @include($childPath .'.index.card-row.'.$key)
-                        @endif
-                    @else
+                    @php( $column = $item[$columnKey])
 
-                        @if($first == 1)
-                            @php( $first = 0)
+                    <div class="d-flex position-relative">
 
-                            @if(is_array($column))
-                                <b style="color: red">Wert {{ $key }} beinhaltet Array, String erwartet!</b>
-                            @else
-                                <h5 class="card-title">{!! $headColumn["display"] !!} {!! $column !!}</h5>
-                            @endif
-                        @else
-                            @if(is_array($column))
-                                <b style="color: red">Wert {{ $key }} beinhaltet Array, String erwartet!</b>
-                            @else
-                                <div class="card-text">{!! $headColumn["display"] !!} {!! $column !!}</div>
-                            @endif
+                        @if( $this->hasFilter($columnKey))
+                            @includeFirst([
+                                 $childPath .".index.filter-icon",
+                                 $path. ".pages.includes.index.includes.filter-icon"
+                                 ], ["filterClass" => "pr-2"])
                         @endif
 
-                    @endif
+                        @includeFirst([
+                           $childPath .".index.card-row.". $columnKey,
+                           $path. ".pages.includes.index.card-row"
+                           ], ["first" => $first])
+
+                    </div>
+
+                    @php( $first = 0)
                 @endif
             @endforeach
         </div>

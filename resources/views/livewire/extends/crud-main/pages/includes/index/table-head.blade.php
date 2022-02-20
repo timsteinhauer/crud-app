@@ -12,29 +12,10 @@
                 <div class="ml-auto d-flex ">
 
                     @if( $this->hasFilter($columnKey))
-                        <div class="pl-2 cursor-pointer hover:opacity-50" wire:click="$set('openedFilterModal', '{{ $openedFilterModal == $columnKey ? "" : $columnKey }}')">
-                            <i class="bi bi-funnel{{ $this->isFilterActive($columnKey) ? "-fill ". $styling["filter_active_color"] : "" }}"></i>
-                        </div>
-
-                        @if( $openedFilterModal == $columnKey)
-                            <div class="position-absolute p-2 border  border-dark bg-white overflow-hidden shadow-2xl sm:rounded-lg top-100 right-0 w-100"
-                            style="box-shadow: 0px 3px 15px 5px !important;">
-
-                                <button class="btn btn-sm btn-close position-absolute"
-                                        style="top: 10px; right: 6px;"
-                                        wire:click="$set('openedFilterModal', '')"></button>
-
-                                @php( $tmp = $this->getFilterConfigAtPosition($columnKey) )
-                                @php( $filterConfig = $tmp["filterConfig"] )
-                                @php( $filterKey = $tmp["filterKey"] )
-
-                                @includeFirst([
-                                    $childPath .".index.filter-". $filterConfig["type"],
-                                    $path. ".pages.includes.index.includes.filter-types.".$filterConfig["type"]
-                                    ])
-
-                            </div>
-                        @endif
+                        @includeFirst([
+                            $childPath .".index.filter-icon",
+                            $path. ".pages.includes.index.includes.filter-icon"
+                            ], ["filterClass" => "pl-2"])
                     @endif
 
                     @if( isset($column["sorting"]) && $column["sorting"] === true )
