@@ -12,9 +12,11 @@
                 style="top: 10px; right: 6px;"
                 wire:click="$set('openedFilterModal', '')"></button>
 
-        @php( $tmp = $this->getFilterConfigAtPosition($columnKey) )
-        @php( $filterConfig = $tmp["filterConfig"] )
-        @php( $filterKey = $tmp["filterKey"] )
+        @php
+            $tmp = $this->getFilterConfigAtPosition($columnKey);
+            $filterConfig = $tmp["filterConfig"];
+            $filterKey = $tmp["filterKey"];
+        @endphp
 
         @includeFirst([
             $childPath .".index.filter-". $filterConfig["type"],

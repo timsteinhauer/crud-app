@@ -5,6 +5,7 @@ namespace App\Livewire\Extends;
 use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
+use phpDocumentor\Reflection\Types\This;
 use function view;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -19,8 +20,9 @@ class CrudMain extends Component
     //  - clone stuff
     //  - soft delete stuff
     //
-    //  - table column sorting && card data sorting
-    //  - header filter stuff
+    //  todo load relationships on edit form
+    //
+    //  todo add all other relationships
     //
     //  todo all field types
     //  - media upload
@@ -33,7 +35,9 @@ class CrudMain extends Component
     //
     //  todo SubQuery Sorting
     //
-    //  todo Multi-Select Fields
+    //  todo coole Multi-Select Fields
+    //
+    //  todo Select Fields with search
     //
     //
     //
@@ -62,6 +66,8 @@ class CrudMain extends Component
     //      other optional(!) override stuff             <!---------------------------------
     //
 
+    // default relationships to load
+    public array $with = [];
 
     //
     // allow of soft deleting and restoring
@@ -113,6 +119,7 @@ class CrudMain extends Component
 
     // default filter
     public array $filter = [];
+
 
     // allow a deeplink to filter-, sorted- and searching results with custom per page count
     protected $queryString = [
@@ -218,7 +225,20 @@ class CrudMain extends Component
     public function create($form): void
     {
         // create new entity through eloquent
-        $this->modelPath::create($form);
+        $newModel = $this->modelPath::create($form);
+
+        // store all existing relationship fields
+        $this->storeRelationships($newModel);
+    }
+
+    public function update($form): void
+    {
+        // update entity through eloquent
+        $model = $this->modelPath::find($form["id"]);
+        $model->update($form);
+
+        // update all existing relationship fields
+        $this->storeRelationships($model);
     }
 
     public function delete($item): void
@@ -343,7 +363,7 @@ class CrudMain extends Component
     // Helper Methods
     //
 
-    public static function withEmptySelect($withEmptyRow, $array): array
+    public static function modelWithEmptySelect($withEmptyRow, $array): array
     {
 
         if ($withEmptyRow) {
@@ -352,10 +372,15 @@ class CrudMain extends Component
         return $array;
     }
 
+    public static function withEmptySelect($array): array
+    {
+        return array_merge([["id" => null, "name" => "-"]], $array);
+    }
+
     //
     // :string to item variables
     //
-    public function parseAttr($string)
+    public function parseAttr(string $string)
     {
 
         // the interface defined this method, it must be there
@@ -369,23 +394,92 @@ class CrudMain extends Component
     //
     // date helpers
     //
-    public function helpDateFormat($str, $format = "d.m.Y"): string
+    public function helpDateFormat($str, $format = "d.m.Y", $default = "-"): string
     {
+        if( $str == "" || $str == null){
+            return $default;
+        }
+
         return Carbon::parse($str)->format($format);
     }
 
-    public function helpDatetimeFormat($str, $format = "d.m.Y H:i"): string
+    public function helpDatetimeFormat($str, $format = "d.m.Y H:i", $default = "-"): string
     {
+        if( $str == "" || $str == null){
+            return $default;
+        }
+
         return Carbon::parse($str)->format($format);
     }
+
+    /**
+     * @param object $item
+     * @param string $key
+     * @param array $options = [?"layout"=>"badges|", ?"color"=>"primary"]
+     * @param array $badges = [["name" => "Abc",?"class" => "", ?"style" => ""], [...]]
+     * @return string
+     */
+    public function helpRelationHasManyFormat(object $item, string $key, array $options = [], array $items = []): string
+    {
+        $default = [
+            "layout" => "badges",
+            "color" => "primary",
+        ];
+
+        $default = array_merge($default, $options);
+
+        if( empty($items)){
+            try {
+                $items = $item->{$key}->toArray();
+            }catch (\Exception $exception){
+                // ignore
+            }
+        }
+
+        return view("templates.components.". $default["layout"], ["items" => $items, 'color' => $default["color"]]);
+    }
+
+    //
+    // form field helpers
+    //
+    public function unsetArrayAt($string): void
+    {
+        $vars = explode('.', $string);
+        $arraySelector = $vars[0];
+        $index = $vars[ count($vars) -1];
+        unset($vars[ count($vars) -1]);
+        unset($vars[0]);
+
+        switch (count($vars)){
+
+            case 1:
+                unset($this->{$arraySelector}[$vars[1]][$index]);
+                break;
+            case 2:
+                unset($this->{$arraySelector}[$vars[1]][$vars[2]][$index]);
+                break;
+            case 3:
+                unset($this->{$arraySelector}[$vars[1]][$vars[2]][$vars[3]][$index]);
+                break;
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+                dd("Only support Sub-Arrays with 4 level of deep in helper method <b>unsetArrayAt</b>" );
+        }
+
+    }
+
 
     //
     // form field handling
     //
     protected function addFormField($key, $type, $title, array|string $rules = [], $config = []): void
     {
-        $this->fields["both"]["form." . $key] = [
-            "key" => "form." . $key,
+        $config = $this->prepareRelationshipConfig($config);
+
+        $this->fields["both"][$key] = [
+            "key" => $key,
             "type" => $type,
             "title" => $title,
             "rules" => $rules,
@@ -395,8 +489,10 @@ class CrudMain extends Component
 
     protected function addCreateFormField($key, $type, $title, array|string $rules = [], $config = []): void
     {
-        $this->fields["create"]["form." . $key] = [
-            "key" => "form." . $key,
+        $config = $this->prepareRelationshipConfig($config);
+
+        $this->fields["create"][$key] = [
+            "key" => $key,
             "type" => $type,
             "title" => $title,
             "rules" => $rules,
@@ -406,8 +502,11 @@ class CrudMain extends Component
 
     protected function addEditFormField($key, $type, $title, array|string $rules = [], $config = []): void
     {
-        $this->fields["edit"]["form." . $key] = [
-            "key" => "form." . $key,
+
+        $config = $this->prepareRelationshipConfig($config);
+
+        $this->fields["edit"][$key] = [
+            "key" => $key,
             "type" => $type,
             "title" => $title,
             "rules" => $rules,
@@ -415,14 +514,96 @@ class CrudMain extends Component
         ];
     }
 
+
+    protected function prepareRelationshipConfig($config): array
+    {
+        if (!isset($config["relation"])) {
+            return $config;
+        }
+
+        if (!isset($config["relation_model"])) {
+            dd('$config["relation_model"] ist nicht gesetzt in ' . __CLASS__);
+        }
+
+        // load default options
+        if (!isset($config["options"])) {
+            $config["options"] = $config["relation_model"]::select(["id", "name"])->get()->toArray();
+        }
+
+        return $config;
+    }
+
+
+    //
+    // this is the default store method for all types of relationship fields.
+    // If you don't want to use it, you need to handel the relationship fields at your own
+    // in the child class store()-method
+    //
+    protected function storeRelationships($newModel)
+    {
+
+        foreach ($this->fields as $scope) {
+            foreach ($scope as $field) {
+
+                // handle only relationship fields
+                if (isset($field["config"]["relation"])) {
+
+                    // if $this->form contains data for the given relationship matching by key?
+                    // skip the current field
+                    if (!isset($this->form[$field["key"]])) {
+                        continue;
+                    }
+
+                    $relationshipKey = $field["key"];
+                    $relationshipFormData = $this->form[$relationshipKey];
+
+                    switch ($field["config"]["relation"]) {
+
+                        case "hasMany":
+
+                            if (!is_array($relationshipFormData)) {
+                                dd("The Form Array must contains an Array at the Key: <b>" . $relationshipKey . "</b> for the Relationship " . $field["title"]);
+                            }
+                            $syncArray = [];
+
+                            foreach ($relationshipFormData as $relationshipId => $value) {
+                                if ($value == "1") {
+                                    $syncArray[] = $relationshipId;
+                                }
+                            }
+
+                            if (!empty($syncArray)) {
+                                $newModel->{$relationshipKey}()->sync($syncArray);
+                            }
+                            break;
+
+                        case "hasOne":
+                            // todo hasOne implementieren
+                            break;
+
+                        case "belongsTo":
+                            // todo belongsTo implementieren
+                            break;
+                    }
+
+                    # dd($field, $this->form, $newModel);
+                }
+
+            }
+        }
+    }
+
+
     public function getFormField($key, $scope = "both"): array
     {
         # dd($this->fields);
-        if (!isset($this->fields[$scope]["form." . $key])) {
+        if (!isset($this->fields[$scope][$key])) {
             dd("Es wurde kein FormField mit dem key: <b>" . $key . "</b> in " . __CLASS__ . " definiert!");
         }
 
-        return $this->fields[$scope]["form." . $key];
+        $field = $this->fields[$scope][$key];
+        $field["keyPath"] = "form." . $field["key"];
+        return $field;
     }
 
 
@@ -443,6 +624,35 @@ class CrudMain extends Component
     protected function addFilter($key, $type, $title, $options, string $default = "", string $position = "header", bool $searchable = false, callable $callback = null): void
     {
         $this->filterConfigs[$key] = [
+            "type" => $type,
+            "title" => $title,
+            "options" => $options,
+            "default" => $default,
+            "position" => $position,
+            "searchable" => $searchable,
+        ];
+
+        // the callbacks are protected, so they won't be synced by livewire
+        if ($callback !== null) {
+            $this->filterCallbacks[$key] = $callback;
+        }
+    }
+
+    /**
+     * @param $key
+     * @param $type = ["select", "multi-select"]
+     * @param $title
+     * @param $options = the options for the select-tag
+     * @param string $default = default value for the filter
+     * @param string $position = ["header", "{key}"]
+     * @param bool $searchable
+     * @param callable|null $callback
+     * @return void
+     */
+    protected function addRelationFilter($key, $type, $title, $options, string $default = "", string $position = "header", bool $searchable = false, callable $callback = null): void
+    {
+        $this->filterConfigs[$key] = [
+            "relation" => $key,
             "type" => $type,
             "title" => $title,
             "options" => $options,
@@ -585,7 +795,7 @@ class CrudMain extends Component
         }
 
         // crud default reloads by change filter values
-        if ( str_contains($propName, "filter.")) {
+        if (str_contains($propName, "filter.")) {
 
             // close modals
             $this->openedFilterModal = "";
@@ -653,15 +863,15 @@ class CrudMain extends Component
                 }
 
                 if ($scope == "both") {
-                    $rules["create"][$key] = $field["rules"];
-                    $rules["edit"][$key] = $field["rules"];
+                    $rules["create"]["form.".$key] = $field["rules"];
+                    $rules["edit"]["form.".$key] = $field["rules"];
 
-                    $attributes["create"][$key] = $field["title"];
-                    $attributes["edit"][$key] = $field["title"];
+                    $attributes["create"]["form.".$key] = $field["title"];
+                    $attributes["edit"]["form.".$key] = $field["title"];
                 } else {
-                    $rules[$scope][$key] = $field["rules"];
+                    $rules[$scope]["form.".$key] = $field["rules"];
 
-                    $attributes[$scope][$key] = $field["title"];
+                    $attributes[$scope]["form.".$key] = $field["title"];
                 }
             }
         }
@@ -795,6 +1005,7 @@ class CrudMain extends Component
         // sorting
         $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc');
 
+
         // fire
         $paginator = $query->paginate($this->perPage);
 
@@ -822,7 +1033,6 @@ class CrudMain extends Component
         $paginatorArr["hasMorePages"] = $paginator->hasMorePages();
         $paginatorArr["elements"] = $paginator->links()["elements"];
 
-#dd($paginator->links()["elements"]);
         // remove data (items)
         unset($paginator["data"]);
 
@@ -839,6 +1049,10 @@ class CrudMain extends Component
         if (method_exists($this, 'query')) {
             // get query from child Crud-Class
             return $this->query();
+        }
+
+        if( !empty($this->with)){
+            return $this->modelPath::query()->with($this->with);
         }
 
         return $this->modelPath::query();
@@ -884,13 +1098,25 @@ class CrudMain extends Component
                 //
                 // use default filter logic, when the value is set
                 //
-                if ($selectedValue === 'not-null') {
-                    $query->whereNotNull($filterKey);
-                } elseif ($selectedValue === 'null') {
-                    $query->whereNull($filterKey);
-                } else {
-                    $query->where($filterKey, $selectedValue);
+                if( isset($this->filterConfigs[$filterKey]["relation"]) ){
+
+                    // relation filter stuff
+                    $query->whereHas($filterKey, function ($query) use ($selectedValue){
+                        $query->where('id', (int)$selectedValue);
+                    });
+
+                }else{
+
+                    // default filter
+                    if ($selectedValue === 'not-null') {
+                        $query->whereNotNull($filterKey);
+                    } elseif ($selectedValue === 'null') {
+                        $query->whereNull($filterKey);
+                    } else {
+                        $query->where($filterKey, $selectedValue);
+                    }
                 }
+
             }
         }
 
@@ -923,7 +1149,11 @@ class CrudMain extends Component
     //
     public function openIndex()
     {
+
         $this->addBeforeHook(__FUNCTION__);
+
+        // everytime we open the index view, reset all error messages
+        $this->resetErrorBag();
 
         // change view
         $this->currentPage = "index";
@@ -983,6 +1213,17 @@ class CrudMain extends Component
         // load current edit data and merge them
         $this->form = array_merge($this->formDefaults["edit"], $item);
 
+        // todo weitermachen und das laden der relations einbauen
+        // todo weitermachen und das laden der relations einbauen
+        // todo weitermachen und das laden der relations einbauen
+        // todo weitermachen und das laden der relations einbauen
+        // todo weitermachen und das laden der relations einbauen
+        // todo weitermachen und das laden der relations einbauen
+        // todo weitermachen und das laden der relations einbauen
+        // todo weitermachen und das laden der relations einbauen
+
+        $this->form["roles"] = [1 => 1];
+
         // change view
         $this->currentPage = "edit";
 
@@ -995,8 +1236,7 @@ class CrudMain extends Component
 
         $this->validateCrud();
 
-        // todo submitEditForm
-
+        $this->update($this->form);
 
         $this->refresh();
         $this->currentPage = "index";

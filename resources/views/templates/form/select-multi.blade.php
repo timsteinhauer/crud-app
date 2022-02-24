@@ -2,10 +2,10 @@
 
     <span class="input-group-text">{{ $title }}</span>
 
-    <select class="form-select @error($keyPath) is-invalid @enderror"
+    <select multiple class="form-select @error($keyPath) is-invalid @enderror"
             wire:model.debounce.500ms="{{ $keyPath }}"
-            {{ isset($config["required"]) && $config["required"] ? "required" : "" }}
-            {{ isset($config["disabled"]) && $config["disabled"] ? "disabled" : "" }}
+        {{ isset($config["required"]) && $config["required"] ? "required" : "" }}
+        {{ isset($config["disabled"]) && $config["disabled"] ? "disabled" : "" }}
     >
         @foreach($config["options"] as $option)
             <option value="{{ $option["id"] }}">{!! $option["name"] !!}</option>

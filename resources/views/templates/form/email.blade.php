@@ -3,13 +3,13 @@
     <span class="input-group-text">{{ $title }}</span>
 
     <input type="email"
-           class="form-control @error($key) is-invalid @enderror"
-           wire:model.debounce.500ms="{{ $key }}"
+           class="form-control @error($keyPath) is-invalid @enderror"
+           wire:model.debounce.500ms="{{ $keyPath }}"
            {{ isset($config["required"]) && $config["required"] ? "required" : "" }}
            {{ isset($config["disabled"]) && $config["disabled"] ? "disabled" : "" }}
            placeholder="{{ $config["placeholder"] ?? "" }}">
 
-    @error($key)
+    @error($keyPath)
     <div class="invalid-feedback">
         {{ $message }}
     </div>

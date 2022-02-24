@@ -5,7 +5,9 @@ namespace App\Livewire\Cruds;
 use App\Livewire\Extends\CrudChildMinimumTableInterface;
 use App\Livewire\Extends\CrudMain;
 use App\Models\Basics\Salutation;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 
 class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
@@ -24,6 +26,8 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
     //
     // optional override stuff             <!---------------------------------    //
     //
+    public array $with = ["roles"];
+
     public array $searchProps = ["name", "email"];
 
     public bool $allowLayoutChange = true; // default is false
@@ -86,6 +90,10 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
                 "email" => $item->email,
                 "verified_at" => $item->email_verified_at,
             ],
+
+            "roles" => $this->helpRelationHasManyFormat($item, "roles", /* ["color" => "info"] */),
+
+            "last_login_at" => $this->helpDateFormat($item->last_login_at),
             "created_at" => $this->helpDateFormat($item->created_at),
         ];
     }
@@ -126,8 +134,9 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
         );
 
         $this->addCreateFormField("email", "email", "E-Mail",
-            "required|email",
+            "required|email|unique:users,email",
             [
+                "value" => "random". now()->format("u") ."@domain.de",
                 "placeholder" => "mail@domain.de",
             ]
         );
@@ -148,6 +157,19 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
         );
 
         //
+        // complex Relationship Fields
+        //
+
+        $this->addFormField("roles", "badges", "Rollen",
+            ["required","array","min:1"],
+            [
+                "relation" => "hasMany",
+                "relation_model" => "Spatie\\Permission\\Models\\Role",
+            ]
+        );
+
+
+        //
         // Filter
         //
 
@@ -155,13 +177,27 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             "email_verified_at",
             "select",
             "E-Mail verifiziert",
-            [
-                ["id" => "", "name" => "-"],
-                ["id" => "not-null", "name" => "Verifiziert"],
-                ["id" => "null", "name" => "Nicht verifiziert"],
-            ],
+            $this->withEmptySelect(
+                [
+                    ["id" => "not-null", "name" => "Verifiziert"],
+                    ["id" => "null", "name" => "Nicht verifiziert"],
+                ],
+            ),
             "",
             "email",
+            true,
+            /*function ($query, $selectedValue) {
+                dd($query, $selectedValue);
+            }*/
+        );
+
+        $this->addRelationFilter(
+            "roles",
+            "select",
+            "Berechtigungen",
+            $this->withEmptySelect(Role::select(["id", "name"])->get()->toArray()),
+            "",
+            "header",
             true,
             /*function ($query, $selectedValue) {
                 dd($query, $selectedValue);
@@ -180,7 +216,9 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
         $form["password"] = Hash::make($password);
 
         // create new entity through eloquent
-        $this->modelPath::create($form);
+        $newModel = $this->modelPath::create($form);
+
+        $this->storeRelationships($newModel);
     }
 
 
