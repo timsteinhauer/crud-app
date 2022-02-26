@@ -6,13 +6,13 @@
         @if( $useSoftDeleting )
 
             <div class="alert {{ $styling["soft_delete"]["message"] }}">
-                {!! $this->parseAttr($wordings["soft_delete"]["message"]) !!}
+                {!! $this->insertName($wordings["soft_delete"]["message"]) !!}
             </div>
 
         @else
 
             <div class="alert {{ $styling["delete"]["message"] }}">
-                {!! $this->parseAttr($wordings["delete"]["message"]) !!}
+                {!! $this->insertName($wordings["delete"]["message"]) !!}
             </div>
         @endif
     </div>

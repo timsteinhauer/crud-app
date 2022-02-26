@@ -14,7 +14,7 @@
             ])
     @empty
         <tr>
-            @if( $allowed["edit"] || $allowed["delete"] || $allowed["clone"] || $allowed["restore"] || $allowed["open"])
+            @if( $allowed["edit"] || $allowed["delete"] || ($useSoftDeleting && $allowed["restore"]))
 
                 {{-- with column for actions --}}
                 <td colspan="{{ count($this->tableColumns()) +1 }}" class="">

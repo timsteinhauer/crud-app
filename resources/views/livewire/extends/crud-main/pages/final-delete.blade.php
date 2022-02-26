@@ -4,7 +4,7 @@
     <div class="-final-delete-wrapper">
 
         <div class="alert {{ $styling["delete"]["message"] }}">
-            {!! $this->parseAttr($wordings["delete"]["message"]) !!}
+            {!! $this->insertName($wordings["delete"]["message"]) !!}
         </div>
     </div>
 @endsection

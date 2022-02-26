@@ -101,7 +101,7 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
     //
     // define the Name for one Item
     //
-    public function getItemIdentifier($item): string
+    public function getItemName($item): string
     {
         return $item["salutation"]["name"] . " " . $item["name"];
     }
@@ -110,7 +110,7 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
     //
     // add all complex stuff like form fields, filters etc.
     //
-    public function initCrud(): void
+    public function mountCrud(): void
     {
         //
         // Form Fields
@@ -121,7 +121,8 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
         $this->addFormField("salutation_id", "select", "Anrede",
             "required",
             [
-                "options" => Salutation::toSelect(true),
+                "relation" => "belongsTo",
+                "relation_model" => "App\\Models\\Basics\\Salutation",
                 "value" => Salutation::defaultSelected(),
             ]
         );

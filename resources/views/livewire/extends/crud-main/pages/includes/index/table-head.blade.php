@@ -11,7 +11,7 @@
 
                 <div class="ml-auto d-flex ">
 
-                    @if( $this->hasFilter($columnKey))
+                    @if( $this->hasFilter($columnKey) && $allowed["show_filter"])
                         @includeFirst([
                             $childPath .".index.filter-icon",
                             $path. ".pages.includes.index.includes.filter-icon"
@@ -32,7 +32,7 @@
 
     @endforeach
 
-    @if( $allowed["edit"] || $allowed["delete"] || $allowed["clone"] || $allowed["restore"] || $allowed["open"] )
+    @if( $allowed["edit"] || $allowed["delete"] || ($useSoftDeleting && $allowed["restore"]))
         <th class="align-middle {{ $styling["action_column_class"] }}" style="{{ $styling["action_column_style"] }}">
         </th>
     @endif

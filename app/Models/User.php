@@ -3,16 +3,14 @@
 namespace App\Models;
 
 use App\Models\Basics\Salutation;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Customer\Customer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -28,6 +26,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'customer_id',
+        'salutation_id',
     ];
 
     protected $hidden = [
@@ -48,6 +48,7 @@ class User extends Authenticatable
 
     protected $with = [
         'salutation',
+        'customer',
     ];
 
     //
@@ -56,6 +57,11 @@ class User extends Authenticatable
     public function salutation(): BelongsTo
     {
         return $this->belongsTo(Salutation::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
 }

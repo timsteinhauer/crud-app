@@ -1,13 +1,17 @@
-<button title="{{ $wordings["index"]["edit_btn"] }}" type="button" class="btn btn-sm btn-primary"
-        wire:click="openEditForm({{ $index }})">
-    <i class="bi bi-gear"></i>
-</button>
+@if( $allowed["edit"])
+    <button title="{{ $wordings["index"]["edit_btn"] }}" type="button" class="btn btn-sm btn-primary"
+            wire:click="openEditForm({{ $index }})">
+        <i class="bi bi-gear"></i>
+    </button>
+@endif
 
-
-<button title="{{ $wordings["index"]["delete_btn"] }}" type="button" class="btn btn-sm {{ $styling["delete"]["submit_btn"] }}"
-        wire:click="{{ $useInstantDeleting ? "submitInstantDeleteForm" : "openDeleteForm" }}({{ $index }})">
-    <i class="bi bi-trash"></i>
-</button>
+@if( $allowed["delete"])
+    <button title="{{ $wordings["index"]["delete_btn"] }}" type="button"
+            class="btn btn-sm {{ $styling["delete"]["submit_btn"] }}"
+            wire:click="{{ $useInstantDeleting ? "submitInstantDeleteForm" : "openDeleteForm" }}({{ $index }})">
+        <i class="bi bi-trash"></i>
+    </button>
+@endif
 
 
 {{-- @if( $viewOnlyMode === false)--}}

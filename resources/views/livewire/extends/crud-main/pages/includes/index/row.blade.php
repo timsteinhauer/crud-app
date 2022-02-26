@@ -15,7 +15,7 @@
         @endif
     @endforeach
 
-    @if( $allowed["edit"] || $allowed["delete"] || $allowed["clone"] || $allowed["restore"] || $allowed["open"])
+    @if( $allowed["edit"] || $allowed["delete"] || ($useSoftDeleting && $allowed["restore"]) )
         @includeFirst([
                 $childPath .".index.row-actions",
                 $path. ".pages.includes.index.row-actions"

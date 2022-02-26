@@ -16,6 +16,8 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('customer_id')->nullable();
+
             $table->tinyInteger('salutation_id')->default(1);
             $table->string('name');
             $table->string('email')->unique();
@@ -34,6 +36,11 @@ return new class extends Migration
             $table->string('sentence', 30);
         });
 
+
+        Schema::create('customers', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 20);
+        });
 
     }
 

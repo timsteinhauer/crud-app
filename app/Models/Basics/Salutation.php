@@ -10,7 +10,13 @@ class Salutation extends Model
 
     public static function toSelect($withEmptyRow = false): array
     {
-        return CrudMain::modelWithEmptySelect($withEmptyRow, self::select(["id", "name"])->get()->toArray());
+        $options = self::select(["id", "name"])->get()->toArray();
+
+        if( $withEmptyRow ){
+            return CrudMain::withEmptySelect($options);
+        }
+
+        return $options;
     }
 
     public static function defaultSelected(): int

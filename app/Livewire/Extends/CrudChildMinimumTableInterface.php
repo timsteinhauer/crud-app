@@ -13,7 +13,7 @@ interface CrudChildMinimumTableInterface{
 
     public function mapping($item): array;
 
-    public function initCrud(): void;
+    public function mountCrud(): void;
 
 
 }
