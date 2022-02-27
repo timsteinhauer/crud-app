@@ -134,23 +134,29 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             ]
         );
 
-        $this->addCreateFormField("email", "email", "E-Mail",
-            "required|email|unique:users,email",
+        $this->addFormField("email", "email", "E-Mail",
             [
-                "value" => "random". now()->format("u") ."@domain.de",
+                "create" => "required|email|unique:users,email",
+                "edit" => "required|email",
+            ],
+            [
+                // global config for all forms
                 "placeholder" => "mail@domain.de",
+
+                // config only for create form
+                "create" => [
+                    "value" => "random". now()->format("u") ."@domain.de",
+                ],
+
+                // config only for edit form
+                "edit" => [
+                    "disabled" => true,
+                ]
             ]
         );
 
-        $this->addEditFormField("email", "email", "E-Mail",
-            "",
-            [
-                "disabled" => true,
-                "placeholder" => "mail@domain.de",
-            ]
-        );
 
-        $this->addEditFormField("text_example", "text", "text_example",
+        $this->addFormField("text_example", "text", "text_example",
             "",
             [
                 "value" => "Standardwert",
@@ -171,7 +177,9 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
 
 
         //
+        //
         // Filter
+        //
         //
 
         $this->addFilter(
@@ -192,11 +200,28 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             }*/
         );
 
+
+        // Example Filter for a hasMany relation
         $this->addRelationFilter(
             "roles",
             "select",
             "Berechtigungen",
             $this->withEmptySelect(Role::select(["id", "name"])->get()->toArray()),
+            "",
+            "header",
+            true,
+            /*function ($query, $selectedValue) {
+                dd($query, $selectedValue);
+            }*/
+        );
+
+
+        // Example Filter for a belongsTo relation
+        $this->addRelationFilter(
+            "salutation_id",
+            "select",
+            "Anrede",
+            $this->withEmptySelect(Salutation::select(["id", "name"])->get()->toArray()),
             "",
             "header",
             true,

@@ -1,4 +1,3 @@
-{{-- todo filter einbauen --}}
 
 @foreach($filterConfigs as $filterKey => $filterConfig)
 

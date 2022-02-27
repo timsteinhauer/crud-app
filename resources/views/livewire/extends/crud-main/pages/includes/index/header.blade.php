@@ -30,7 +30,7 @@
 
     @if( $allowed["show_filter"] )
 
-        <div class="-filter ml-lg-auto">
+        <div class="-filter ml-lg-auto d-flex">
             @includeFirst([
                     $childPath .".index.filter",
                     $path. ".pages.includes.index.filter"

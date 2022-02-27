@@ -1,4 +1,4 @@
-<div>
+<div class="pr-3">
     <label for="filter-{{ $filterKey }}" class="form-text pr-4">{{ $filterConfig["title"] }}</label>
 
     <div class="input-group">
