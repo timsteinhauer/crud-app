@@ -21,7 +21,7 @@ class CrudMain extends Component
     //
     //  todo add all other relationships
     //  - hasMany -> CHECKED
-    //  - belongsTo
+    //  - belongsTo -> CHECKED
     //  - belongsToMany
     //  - hasOne
     //
