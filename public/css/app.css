@@ -955,6 +955,9 @@ select {
 .top-0 {
   top: 0px;
 }
+.bottom-0 {
+  bottom: 0px;
+}
 .z-0 {
   z-index: 0;
 }
@@ -1043,6 +1046,9 @@ select {
 .-mt-px {
   margin-top: -1px;
 }
+.ml-auto {
+  margin-left: auto;
+}
 .mr-1 {
   margin-right: 0.25rem;
 }
@@ -1051,9 +1057,6 @@ select {
 }
 .mb-0 {
   margin-bottom: 0px;
-}
-.ml-auto {
-  margin-left: auto;
 }
 .block {
   display: block;

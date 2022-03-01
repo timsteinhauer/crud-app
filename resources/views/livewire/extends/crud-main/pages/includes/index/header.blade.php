@@ -20,7 +20,7 @@
                 <input class="form-control" wire:model.debounce.500ms="search" style="padding-right: 0;"
                        placeholder="{{ $wordings["search"] ?? 'Suchen...'}}" type="search">
 
-                <button class="btn btn-outline-secondary" type="button" wire:click="$set('search', '')">
+                <button class="btn border" type="button" wire:click="$set('search', '')">
                     <span>×</span>
                 </button>
             </div>

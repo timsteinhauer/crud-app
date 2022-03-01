@@ -209,7 +209,7 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             $this->withEmptySelect(Role::select(["id", "name"])->get()->toArray()),
             "",
             "header",
-            true,
+            false,
             /*function ($query, $selectedValue) {
                 dd($query, $selectedValue);
             }*/

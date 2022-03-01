@@ -17,8 +17,6 @@ class CrudMain extends Component
     //  - restore stuff
     //  - soft delete stuff
     //
-    //  CHECK load relationships on edit form
-    //
     //  todo add all other relationships
     //  - hasMany -> CHECKED
     //  - belongsTo -> CHECKED
@@ -357,6 +355,12 @@ class CrudMain extends Component
 
     // the pagination stuff
     public array $paginator = [];
+
+    // currently, opened searchable filter
+    public string $openedSearchableField = "";
+
+    // stores the search string for the opened searchable field
+    public string $searchableFieldQuery = "";
 
     // Template for the empty option entries for Select-Form Fields
     protected array $defaultFilterArray = [
@@ -806,6 +810,44 @@ class CrudMain extends Component
         // if no config was found, there must be a serious error, because this function can only be
         // called, when a config array should be exists...
         dd("Fehler. Die Filter-Position " . $positionKey . " müsste vorhanden sein!");
+    }
+
+    public function openSearchableField($key){
+        $this->searchableFieldQuery = "";
+        $this->openedSearchableField = $key;
+    }
+
+    public function closeSearchableField(){
+        $this->openedSearchableField = "";
+    }
+
+    public function setSearchableFieldValue($key, $value){
+
+        $key = explode(".", $key);
+
+        if( isset( $key[1])){
+
+            $this->{$key[0]}[$key[1]] = $value;
+        }else{
+            $this->{$key[0]} = $value;
+        }
+
+        $this->openedSearchableField = "";
+
+        $this->refresh();
+    }
+
+    public function matchedFilterQuery( $currentItem ){
+
+        if( $this->searchableFieldQuery == ""){
+            return true;
+        }
+
+        if ( str_contains(strtolower($currentItem), strtolower($this->searchableFieldQuery))){
+            return true;
+        }
+
+        return false;
     }
 
     // End of:  Filter Section
