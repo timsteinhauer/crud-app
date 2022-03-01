@@ -33,6 +33,11 @@ class CrudMain extends Component
     //  todo SubQuery Sorting
     //
     //  todo Select Fields with search
+    //  - for the Filters -> CHECKED
+    //  - for the select fields
+    //  - for the multi-select fields
+    //  - for the badges UI field
+    //  - for the multi-badges UI field
     //
     //  todo Upload kram...
     //
@@ -812,23 +817,27 @@ class CrudMain extends Component
         dd("Fehler. Die Filter-Position " . $positionKey . " müsste vorhanden sein!");
     }
 
-    public function openSearchableField($key){
+    public function openSearchableField($key): void
+    {
         $this->searchableFieldQuery = "";
         $this->openedSearchableField = $key;
     }
 
-    public function closeSearchableField(){
+    public function closeSearchableField(): void
+    {
         $this->openedSearchableField = "";
     }
 
-    public function setSearchableFieldValue($key, $value){
+    // custom select field UI, this method handel the click to the "<option>" Fake tag
+    public function setSearchableFieldValue($key, $value): void
+    {
 
         $key = explode(".", $key);
 
-        if( isset( $key[1])){
+        if (isset($key[1])) {
 
             $this->{$key[0]}[$key[1]] = $value;
-        }else{
+        } else {
             $this->{$key[0]} = $value;
         }
 
@@ -837,13 +846,15 @@ class CrudMain extends Component
         $this->refresh();
     }
 
-    public function matchedFilterQuery( $currentItem ){
+    // select2 fake UI, this method filter the provided <option>-Tags
+    public function matchedFilterQuery($currentItem): bool
+    {
 
-        if( $this->searchableFieldQuery == ""){
+        if ($this->searchableFieldQuery == "") {
             return true;
         }
 
-        if ( str_contains(strtolower($currentItem), strtolower($this->searchableFieldQuery))){
+        if (str_contains(strtolower($currentItem), strtolower($this->searchableFieldQuery))) {
             return true;
         }
 
