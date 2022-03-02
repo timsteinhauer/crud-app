@@ -13,6 +13,14 @@ class CrudMain extends Component
 {
 
     //
+    //  todo WEITERMACHEN
+    //  - layout und system trennen nach Kunden und Admins
+    //  - CustomerUserCrud fertigstellen
+    //  - redirect weiche beim login  -> https://codesource.io/how-to-conditionally-redirect-users-after-login-on-laravel-jetstream/
+    //  - auth()->user()->load() beim login
+    //  - redis sessions
+    //
+    //
     //  todo Crud Main Features
     //  - restore stuff
     //  - soft delete stuff
