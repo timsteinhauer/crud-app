@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Basics\Salutation;
+use App\Models\Customer\Customer;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -35,13 +36,16 @@ class Init extends Migration
         $customerPermission = Permission::create(["name" => "do customer"]);
         $customerPermission->assignRole($customerRole);
 
+        //
         // insert default Users
+        //
         $users = [
             [
                 "name" => "Tim Steinhauer",
                 "email" => "t.steinhauer@high-office.com",
                 "email_verified_at" => now(),
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
+                "is_admin" => 1,
                 "roles" => ["Admin"],
             ],[
                 "name" => "Max Muster",
@@ -118,6 +122,18 @@ class Init extends Migration
             }
         }
 
+
+        //
+        // add default Customers
+        //
+        $customer1 = Customer::create(["name" => "Kunde 1", "created_at" => now(), "updated_at" => now()]);
+        $customer2 = Customer::create(["name" => "Kunde 2", "created_at" => now(), "updated_at" => now()]);
+        $customer3 = Customer::create(["name" => "Kunde 3", "created_at" => now(), "updated_at" => now()]);
+
+        // add user to Customers
+        $customer1->users()->sync([1,2,3]);
+        $customer2->users()->sync([4,5,6]);
+        $customer3->users()->sync([7,8,9]);
     }
 
     /**

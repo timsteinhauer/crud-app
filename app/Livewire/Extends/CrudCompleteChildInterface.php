@@ -21,6 +21,8 @@ interface CrudCompleteChildInterface{
     //
 
     //
+    public function getItemIdentifier($item): string;
+
     public function beforeOpenEditForm($item): void;
 
     // custom child class create method to handle relations etc.

@@ -24,7 +24,6 @@ class CrudMain extends Component
     //  - hasOne
     //
     //  todo all field types
-    //  - media upload
     //  - checkbox / radio
     //  - date / datetime
     //  - range
@@ -39,10 +38,20 @@ class CrudMain extends Component
     //  - for the badges UI field
     //  - for the multi-badges UI field
     //
-    //  todo Upload kram...
     //
-    //  todo move Curd Stuff to Package
+    //  todo File Upload Trait
     //
+    //
+    //  todo Responsive...
+    //
+    //
+    //  todo move Curd to composer package
+    //
+    //
+    //  todo wording array konsequent nutzen
+    //
+    //
+    //  todo styling array konsequent nutzen
 
 
     //
@@ -87,12 +96,17 @@ class CrudMain extends Component
     // if true, there is "Do you really want to delete the Item?"-Question
     public bool $useInstantDeleting = false;
 
+    // route to detail page
+    public string $detailRoute = "";
+
+
     //
     // handling abilities
     // on Child Classes, override these array to handel custom user roles and abilities
     //
     public array $allowed = [
         "create" => true,
+        "details" => true,
         "edit" => true,
         "delete" => true,
         "final_delete" => true,
@@ -156,6 +170,7 @@ class CrudMain extends Component
 
         // pages specific buttons
         "index" => [
+            "details_btn" => "Öffnen",
             "edit_btn" => "Bearbeiten",
             "delete_btn" => "Löschen",
         ],
@@ -420,12 +435,15 @@ class CrudMain extends Component
     public function insertName(string $string)
     {
 
-        // the interface defined this method, it must be there
-        if (!method_exists($this, "getItemIdentifier")) {
-            die('Method <b>getItemIdentifier</b> fehlt in der Child-Klass: <b>' . __CLASS__ . '</b>!');
+        if ( method_exists($this, "getItemIdentifier") ) {
+            return str_replace(":name", $this->getItemName($this->form), $string);
         }
 
-        return str_replace(":name", $this->getItemName($this->form), $string);
+        if( isset($this->form["name"])){
+            return $this->form["name"];
+        }
+
+        die('<b>Kein Name gefunden für Child-Klass: ' . __CLASS__ . '</b>! (<u>Attribut Name</u> oder Method <u>getItemIdentifier</u>)');
     }
 
     // carbon parse shorthand for date
@@ -456,6 +474,12 @@ class CrudMain extends Component
     public function getModelFromIndex($index)
     {
         return $this->paginator["data"][$index];
+    }
+
+    // gets only the id
+    public function getIdFromIndex($index)
+    {
+        return $this->paginator["data"][$index]["id"];
     }
 
 

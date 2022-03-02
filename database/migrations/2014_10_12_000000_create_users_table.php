@@ -18,6 +18,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('customer_id')->nullable();
 
+            $table->boolean('is_admin')->default(0);
+
             $table->tinyInteger('salutation_id')->default(1);
             $table->string('name');
             $table->string('email')->unique();
@@ -40,6 +42,15 @@ return new class extends Migration
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->string('name', 20);
+
+            $table->timestamps();
+        });
+
+        Schema::create('customer_user', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger("user_id");
+            $table->unsignedBigInteger("customer_id");
+            $table->timestamps();
         });
 
     }

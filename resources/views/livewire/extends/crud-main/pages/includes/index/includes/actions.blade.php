@@ -1,3 +1,13 @@
+
+
+@if( $allowed["details"] && !empty($detailRoute))
+
+    <a title="{{ $wordings["index"]["details_btn"] }}" type="button" class="btn btn-sm btn-primary"
+            href="{{ route($detailRoute, ["id" => $this->getIdFromIndex($index) ]) }}">
+        <i class="bi bi-three-dots"></i>
+    </a>
+@endif
+
 @if( $allowed["edit"])
     <button title="{{ $wordings["index"]["edit_btn"] }}" type="button" class="btn btn-sm btn-primary"
             wire:click="openEditForm({{ $index }})">

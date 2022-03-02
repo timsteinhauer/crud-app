@@ -23,7 +23,7 @@
         <x-jet-banner />
 
         <div class="min-h-screen bg-gray-100">
-            @livewire('navigation-menu')
+            @livewire('basics.navigation-menu')
 
             <!-- Page Heading -->
             @if (isset($header))
@@ -42,6 +42,10 @@
 
         @stack('modals')
 
-        @livewireScripts
+        <div id="Scripts">
+            <!-- Scripts -->
+            @livewireScripts
+        </div>
+
     </body>
 </html>

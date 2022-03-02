@@ -23,6 +23,7 @@ class User extends Authenticatable
     use HasRoles;
 
     protected $fillable = [
+        'is_admin',
         'name',
         'email',
         'password',
@@ -37,10 +38,6 @@ class User extends Authenticatable
         'two_factor_secret',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'created_at' => 'datetime',
-    ];
 
     protected $appends = [
         'profile_photo_url',

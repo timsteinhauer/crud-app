@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Livewire\Cruds;
+namespace App\Livewire\Customer\Cruds;
 
 use App\Livewire\Extends\CrudChildMinimumTableInterface;
 use App\Livewire\Extends\CrudMain;
 use App\Models\Basics\Salutation;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
 
-class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
+class CustomerUserCrud extends CrudMain implements CrudChildMinimumTableInterface
 {
 
     // like App\\Models\\User
@@ -42,10 +41,6 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
     public function tableColumns(): array
     {
         return [
-            "id" => [
-                "display" => "ID",
-                "sorting" => true,
-            ],
             "salutation_id" => [
                 "display" => "Anrede",
                 "sorting" => true,
@@ -62,19 +57,8 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
                 "display" => "Berechtigungen",
                 "sorting" => false,
             ],
-            "last_login_at" => [
-                "display" => "Letzter Login",
-                "sorting" => false,
-                "class" => "text-nowrap",
-            ],
-            "created_at" => [
-                "display" => "Erstellt",
-                "sorting" => true,
-                "class" => "",
-            ],
         ];
     }
-
 
 
     //
@@ -84,7 +68,6 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
     {
 
         return [
-            "id" => $item->id,
             "salutation_id" => $item->salutation->name,
             "name" => $item->name,
             "email" => [
@@ -94,8 +77,6 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
 
             "roles" => $this->helpRelationHasManyFormat($item, "roles", /* ["color" => "info"] */),
 
-            "last_login_at" => $this->helpDateFormat($item->last_login_at),
-            "created_at" => $this->helpDateFormat($item->created_at),
         ];
     }
 
@@ -196,9 +177,9 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             "",
             "email",
             true,
-            /*function ($query, $selectedValue) {
-                dd($query, $selectedValue);
-            }*/
+        /*function ($query, $selectedValue) {
+            dd($query, $selectedValue);
+        }*/
         );
 
 
@@ -211,9 +192,9 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             "",
             "header",
             false,
-            /*function ($query, $selectedValue) {
-                dd($query, $selectedValue);
-            }*/
+        /*function ($query, $selectedValue) {
+            dd($query, $selectedValue);
+        }*/
         );
 
 
@@ -226,9 +207,9 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             "",
             "header",
             true,
-            /*function ($query, $selectedValue) {
-                dd($query, $selectedValue);
-            }*/
+        /*function ($query, $selectedValue) {
+            dd($query, $selectedValue);
+        }*/
         );
     }
 
