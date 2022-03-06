@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Livewire\Cruds;
+namespace App\Livewire\Cruds\Customer;
 
 use App\Livewire\Extends\CrudChildMinimumTableInterface;
 use App\Livewire\Extends\CrudMain;
 use App\Models\Basics\Salutation;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
@@ -173,6 +174,7 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             [
                 "relation" => "hasMany",
                 "relation_model" => "Spatie\\Permission\\Models\\Role",
+                "options" => Role::select(["id","name"])->where("is_operator_role", 0)->get()->toArray(),
             ]
         );
 
@@ -196,9 +198,9 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             "",
             "email",
             true,
-            /*function ($query, $selectedValue) {
-                dd($query, $selectedValue);
-            }*/
+        /*function ($query, $selectedValue) {
+            dd($query, $selectedValue);
+        }*/
         );
 
 
@@ -207,13 +209,13 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             "roles",
             "select",
             "Berechtigungen",
-            $this->withEmptySelect(Role::select(["id", "name"])->get()->toArray()),
+            $this->withEmptySelect(Role::select(["id", "name"])->where('is_operator_role', 0)->get()->toArray()),
             "",
             "header",
             false,
-            /*function ($query, $selectedValue) {
-                dd($query, $selectedValue);
-            }*/
+        /*function ($query, $selectedValue) {
+            dd($query, $selectedValue);
+        }*/
         );
 
 
@@ -226,10 +228,19 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
             "",
             "header",
             true,
-            /*function ($query, $selectedValue) {
-                dd($query, $selectedValue);
-            }*/
+        /*function ($query, $selectedValue) {
+            dd($query, $selectedValue);
+        }*/
         );
+    }
+
+    protected function query(): Builder
+    {
+        // only customer users (operator == 0)
+        return $this->modelPath::query()
+            ->with($this->with)
+            ->where('is_operator', 0)
+            ->where('customer_id', auth()->user()["customer_id"]);
     }
 
     // override create method
@@ -237,10 +248,14 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
     {
         // handle user model specific create stuff
 
-        // set random password
-        $random = str_shuffle('abcdefghjklmnopqrstuvwxyzABCDEFGHJKLMNOPQRSTUVWXYZ234567890!$%&!$%&!$%&!$%&');
-        $password = substr($random, 0, 12);
-        $form["password"] = Hash::make($password);
+        //set random password
+        $form["password"] = User::randomPasswordHash();
+
+        // this form creates customer users
+        $form["is_operator"] = 0;
+
+        // user belongs to the current customer of the auth user
+        $form["customer_id"] = auth()->user()["customer_id"];
 
         // create new entity through eloquent
         $newModel = $this->modelPath::create($form);

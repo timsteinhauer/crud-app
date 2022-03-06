@@ -18,35 +18,8 @@ Route::get('/', function () {
     return redirect( route('login') );
 });
 
-Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
-    Route::get('/dashboard', function () {
-        return view('pages.dashboard');
-    })->name('dashboard');
+include "web/admin-web.php";
 
-});
-
-Route::middleware(['auth:sanctum', 'verified'])
-    ->prefix("admin")
-    ->as("admin")
-    ->name("admin.")
-    ->group(function (){
-
-    Route::get('/dashboard', function () {
-        return view('pages.dashboard');
-    })->name('dashboard');
-
-    Route::get('/users', function () {
-        return view('cruds.user-crud.index');
-    })->name('users');
-
-    Route::get('/customers', function () {
-        return view('cruds.customer-crud.index');
-    })->name('customers');
-
-    Route::get('/customers/{id}', function () {
-        return view('cruds.customer-crud.details');
-    })->name('customer');
-
-});
+include "web/customer-web.php";
 

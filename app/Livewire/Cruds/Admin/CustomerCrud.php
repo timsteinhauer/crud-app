@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Cruds;
+namespace App\Livewire\Cruds\Admin;
 
 use App\Livewire\Extends\CrudChildMinimumTableInterface;
 use App\Livewire\Extends\CrudMain;

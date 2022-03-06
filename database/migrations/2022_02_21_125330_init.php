@@ -28,12 +28,12 @@ class Init extends Migration
         //
         // https://spatie.be/docs/laravel-permission/v5/basic-usage/basic-usage
         //
-        $adminRole = Role::create(["name" => "Admin"]);
-        $adminPermission = Permission::create(["name" => "do admin"]);
+        $adminRole = Role::create(["name" => "Admin", "is_operator_role" => 1]);
+        $adminPermission = Permission::create(["name" => "manage admin stuff"]);
         $adminPermission->assignRole($adminRole);
 
-        $customerRole = Role::create(["name" => "Kunde"]);
-        $customerPermission = Permission::create(["name" => "do customer"]);
+        $customerRole = Role::create(["name" => "Benutzerverwaltung"]);
+        $customerPermission = Permission::create(["name" => "manage customer users"]);
         $customerPermission->assignRole($customerRole);
 
         //
@@ -45,62 +45,76 @@ class Init extends Migration
                 "email" => "t.steinhauer@high-office.com",
                 "email_verified_at" => now(),
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
-                "is_admin" => 1,
+                "is_operator" => 1,
                 "roles" => ["Admin"],
             ],[
-                "name" => "Max Muster",
-                "email" => "maxmuster@high-office.com",
+                "name" => "Kunde Muster",
+                "email" => "kunde@high-office.com",
                 "email_verified_at" => now(),
+                "customer_id" => 1,
+                "roles" => ["Benutzerverwaltung"],
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
             ],[
                 "name" => "Test1",
                 "email" => "test1@high-office.com",
                 "email_verified_at" => null,
+                "customer_id" => 2,
+                "roles" => ["Benutzerverwaltung"],
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
             ],[
                 "name" => "Test2",
                 "email" => "test2@high-office.com",
                 "email_verified_at" => now(),
+                "customer_id" => 3,
+                "roles" => ["Benutzerverwaltung"],
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
             ],[
                 "name" => "Test3",
                 "email" => "test3@high-office.com",
                 "email_verified_at" => now(),
+                "customer_id" => 1,
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
             ],[
                 "name" => "Test4",
                 "email" => "test4@high-office.com",
                 "email_verified_at" => now(),
+                "customer_id" => 2,
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
             ],[
                 "name" => "Test5",
                 "email" => "test5@high-office.com",
                 "email_verified_at" => null,
+                "customer_id" => 3,
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
             ],[
                 "name" => "Test6",
                 "email" => "test6@high-office.com",
                 "email_verified_at" => now(),
+                "customer_id" => 1,
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
             ],[
                 "name" => "Test7",
                 "email" => "test7@high-office.com",
                 "email_verified_at" => now(),
+                "customer_id" => 2,
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
             ],[
                 "name" => "Test8",
                 "email" => "test8@high-office.com",
                 "email_verified_at" => null,
+                "customer_id" => 3,
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
             ],[
                 "name" => "Test9",
                 "email" => "test9@high-office.com",
                 "email_verified_at" => now(),
+                "customer_id" => 1,
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
             ],[
                 "name" => "Test10",
                 "email" => "test10@high-office.com",
                 "email_verified_at" => now(),
+                "customer_id" => 2,
                 "password" => \Illuminate\Support\Facades\Hash::make("20948Crud!_*"),
             ],
         ];
@@ -111,7 +125,7 @@ class Init extends Migration
                 $roles = $user["roles"];
                 unset($user["roles"]);
             }else{
-                $roles = ["Kunde"];
+                $roles = [];
             }
 
             $user = \App\Models\User::create($user);
@@ -130,10 +144,6 @@ class Init extends Migration
         $customer2 = Customer::create(["name" => "Kunde 2", "created_at" => now(), "updated_at" => now()]);
         $customer3 = Customer::create(["name" => "Kunde 3", "created_at" => now(), "updated_at" => now()]);
 
-        // add user to Customers
-        $customer1->users()->sync([1,2,3]);
-        $customer2->users()->sync([4,5,6]);
-        $customer3->users()->sync([7,8,9]);
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use App\Providers\RouteServiceProvider;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Features;
 
 return [
@@ -61,7 +62,14 @@ return [
     |
     */
 
-    'home' => RouteServiceProvider::HOME,
+    'home' => function() {
+        //or if you have a bunch of redirection options
+        if (Auth::user()["is_operator"]) {
+            return route('admin.dashboard');
+        } else {
+            return route('customer.dashboard');
+        }
+    },
 
     /*
     |--------------------------------------------------------------------------

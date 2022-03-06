@@ -1,15 +1,18 @@
 <?php
 
-namespace App\Livewire\Customer\Cruds;
+namespace App\Livewire\Cruds\Admin;
 
 use App\Livewire\Extends\CrudChildMinimumTableInterface;
 use App\Livewire\Extends\CrudMain;
 use App\Models\Basics\Salutation;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use function now;
 
 
-class CustomerUserCrud extends CrudMain implements CrudChildMinimumTableInterface
+class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
 {
 
     // like App\\Models\\User
@@ -41,6 +44,10 @@ class CustomerUserCrud extends CrudMain implements CrudChildMinimumTableInterfac
     public function tableColumns(): array
     {
         return [
+            "id" => [
+                "display" => "ID",
+                "sorting" => true,
+            ],
             "salutation_id" => [
                 "display" => "Anrede",
                 "sorting" => true,
@@ -57,8 +64,19 @@ class CustomerUserCrud extends CrudMain implements CrudChildMinimumTableInterfac
                 "display" => "Berechtigungen",
                 "sorting" => false,
             ],
+            "last_login_at" => [
+                "display" => "Letzter Login",
+                "sorting" => false,
+                "class" => "text-nowrap",
+            ],
+            "created_at" => [
+                "display" => "Erstellt",
+                "sorting" => true,
+                "class" => "",
+            ],
         ];
     }
+
 
 
     //
@@ -68,6 +86,7 @@ class CustomerUserCrud extends CrudMain implements CrudChildMinimumTableInterfac
     {
 
         return [
+            "id" => $item->id,
             "salutation_id" => $item->salutation->name,
             "name" => $item->name,
             "email" => [
@@ -77,6 +96,8 @@ class CustomerUserCrud extends CrudMain implements CrudChildMinimumTableInterfac
 
             "roles" => $this->helpRelationHasManyFormat($item, "roles", /* ["color" => "info"] */),
 
+            "last_login_at" => $this->helpDateFormat($item->last_login_at),
+            "created_at" => $this->helpDateFormat($item->created_at),
         ];
     }
 
@@ -154,6 +175,7 @@ class CustomerUserCrud extends CrudMain implements CrudChildMinimumTableInterfac
             [
                 "relation" => "hasMany",
                 "relation_model" => "Spatie\\Permission\\Models\\Role",
+                "options" => Role::select(["id","name"])->where("is_operator_role", 1)->get()->toArray(),
             ]
         );
 
@@ -177,9 +199,9 @@ class CustomerUserCrud extends CrudMain implements CrudChildMinimumTableInterfac
             "",
             "email",
             true,
-        /*function ($query, $selectedValue) {
-            dd($query, $selectedValue);
-        }*/
+            /*function ($query, $selectedValue) {
+                dd($query, $selectedValue);
+            }*/
         );
 
 
@@ -188,13 +210,13 @@ class CustomerUserCrud extends CrudMain implements CrudChildMinimumTableInterfac
             "roles",
             "select",
             "Berechtigungen",
-            $this->withEmptySelect(Role::select(["id", "name"])->get()->toArray()),
+            $this->withEmptySelect(Role::select(["id", "name"])->where('is_operator_role', 1)->get()->toArray()),
             "",
             "header",
             false,
-        /*function ($query, $selectedValue) {
-            dd($query, $selectedValue);
-        }*/
+            /*function ($query, $selectedValue) {
+                dd($query, $selectedValue);
+            }*/
         );
 
 
@@ -207,11 +229,18 @@ class CustomerUserCrud extends CrudMain implements CrudChildMinimumTableInterfac
             "",
             "header",
             true,
-        /*function ($query, $selectedValue) {
-            dd($query, $selectedValue);
-        }*/
+            /*function ($query, $selectedValue) {
+                dd($query, $selectedValue);
+            }*/
         );
     }
+
+    protected function query(): Builder
+    {
+        // only admin / operator users (operator == 1)
+        return $this->modelPath::query()->with($this->with)->where('is_operator', 1);
+    }
+
 
     // override create method
     public function create($form): void
@@ -219,9 +248,13 @@ class CustomerUserCrud extends CrudMain implements CrudChildMinimumTableInterfac
         // handle user model specific create stuff
 
         // set random password
-        $random = str_shuffle('abcdefghjklmnopqrstuvwxyzABCDEFGHJKLMNOPQRSTUVWXYZ234567890!$%&!$%&!$%&!$%&');
-        $password = substr($random, 0, 12);
-        $form["password"] = Hash::make($password);
+        $form["password"] = User::randomPasswordHash();
+
+        // this form creates admin users
+        $form["is_operator"] = 1;
+
+        // operator users belongs to no customer
+        $form["customer_id"] = null;
 
         // create new entity through eloquent
         $newModel = $this->modelPath::create($form);

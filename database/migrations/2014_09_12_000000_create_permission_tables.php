@@ -48,6 +48,9 @@ class CreatePermissionTables extends Migration
             } else {
                 $table->unique(['name', 'guard_name']);
             }
+
+            // customize roles
+            $table->tinyInteger("is_operator_role")->default(0);
         });
 
         Schema::create($tableNames['model_has_permissions'], function (Blueprint $table) use ($tableNames, $columnNames, $teams) {

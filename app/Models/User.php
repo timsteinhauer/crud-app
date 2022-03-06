@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
@@ -23,7 +24,7 @@ class User extends Authenticatable
     use HasRoles;
 
     protected $fillable = [
-        'is_admin',
+        'is_operator',
         'name',
         'email',
         'password',
@@ -61,4 +62,19 @@ class User extends Authenticatable
         return $this->belongsTo(Customer::class);
     }
 
+
+    //
+    // Business Logic
+    //
+
+    public static function randomPassword(): string
+    {
+        $random = str_shuffle('abcdefghjklmnopqrstuvwxyzABCDEFGHJKLMNOPQRSTUVWXYZ234567890!$%&!$%&!$%&!$%&');
+        return substr($random, 0, 12);
+    }
+
+    public static function randomPasswordHash(): string
+    {
+        return Hash::make( self::randomPassword() );
+    }
 }
