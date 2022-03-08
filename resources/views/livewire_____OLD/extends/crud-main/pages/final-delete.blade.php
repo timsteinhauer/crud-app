@@ -1,4 +1,4 @@
-@extends('livewire.extends.crud-main.pages.extends.subpages-wrapper')
+@extends('vendor.timsteinhauer.livewirecrud.crud-main.pages.extends.subpages-wrapper')
 
 @section("crud-page")
     <div class="-final-delete-wrapper">

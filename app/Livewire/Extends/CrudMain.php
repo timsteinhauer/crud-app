@@ -15,8 +15,6 @@ class CrudMain extends Component
     //
     //  todo WEITERMACHEN
     //  - layout und system trennen nach Kunden und Admins
-    //  - CustomerUserCrud fertigstellen
-    //  - redirect weiche beim login  -> https://codesource.io/how-to-conditionally-redirect-users-after-login-on-laravel-jetstream/
     //  - auth()->user()->load() beim login
     //  - redis sessions
     //
@@ -355,7 +353,7 @@ class CrudMain extends Component
     public array $crudAttributes = [];
 
     // path to livewire views
-    public string $path = "livewire.extends.crud-main";
+    public string $path = "vendor.timsteinhauer.livewirecrud.crud-main";
 
     // path to the folder with all child classes views
     public string $childPath = "cruds."; // see mount()!
@@ -1021,7 +1019,7 @@ class CrudMain extends Component
     // I don't know what this will do ...
     public function render()
     {
-        return view('livewire.extends.crud-main.index');
+        return view('vendor.timsteinhauer.livewirecrud.crud-main.index');
     }
 
 

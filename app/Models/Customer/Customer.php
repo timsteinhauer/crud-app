@@ -20,9 +20,9 @@ class Customer extends Model
     //
     // Relations
     //
-    public function users(): BelongsToMany
+    public function users(): HasMany
     {
-        return $this->belongsToMany(User::class, "customer_user");
+        return $this->hasMany(User::class, "customer_id");
     }
 
 }

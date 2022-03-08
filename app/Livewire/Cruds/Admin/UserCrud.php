@@ -2,13 +2,15 @@
 
 namespace App\Livewire\Cruds\Admin;
 
-use App\Livewire\Extends\CrudChildMinimumTableInterface;
-use App\Livewire\Extends\CrudMain;
+
 use App\Models\Basics\Salutation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+
+use Timsteinhauer\LivewireCrud\CrudMain;
+use Timsteinhauer\LivewireCrud\Interfaces\CrudChildMinimumTableInterface;
+
 use function now;
 
 
