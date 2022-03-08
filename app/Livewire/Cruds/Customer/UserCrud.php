@@ -2,13 +2,12 @@
 
 namespace App\Livewire\Cruds\Customer;
 
-use App\Livewire\Extends\CrudChildMinimumTableInterface;
-use App\Livewire\Extends\CrudMain;
 use App\Models\Basics\Salutation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Timsteinhauer\LivewireCrud\CrudMain;
+use Timsteinhauer\LivewireCrud\Interfaces\CrudChildMinimumTableInterface;
 
 
 class UserCrud extends CrudMain implements CrudChildMinimumTableInterface

@@ -2,9 +2,8 @@
 
 namespace App\Livewire\Cruds\Admin;
 
-use App\Livewire\Extends\CrudChildMinimumTableInterface;
-use App\Livewire\Extends\CrudMain;
-
+use Timsteinhauer\LivewireCrud\CrudMain;
+use Timsteinhauer\LivewireCrud\Interfaces\CrudChildMinimumTableInterface;
 
 class CustomerCrud extends CrudMain implements CrudChildMinimumTableInterface
 {
