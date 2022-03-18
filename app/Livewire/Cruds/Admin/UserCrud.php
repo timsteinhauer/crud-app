@@ -35,6 +35,8 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
     public array $searchProps = ["name", "email"];
 
     public bool $allowLayoutChange = true; // default is false
+
+    // change Subpage Layout to modals
     public string $pageStyle = "modal";
 
 
