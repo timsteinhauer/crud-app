@@ -2,7 +2,7 @@
 
     @foreach($this->tableColumns() as $key => $headColumn)
 
-        @if( isset($item[$key]))
+        @if( array_key_exists($key, $item) )
             @php( $column = $item[$key])
 
             {{-- column wrapper --}}

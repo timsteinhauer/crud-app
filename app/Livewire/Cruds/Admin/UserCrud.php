@@ -35,6 +35,8 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
     public array $searchProps = ["name", "email"];
 
     public bool $allowLayoutChange = true; // default is false
+    public string $pageStyle = "modal";
+
 
     // end
 
@@ -124,7 +126,7 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
         $this->addFormField("id", null, "ID","",);
 
         $this->addFormField("salutation_id", "select", "Anrede",
-            "required",
+            ["required"],
             [
                 "relation" => "belongsTo",
                 "relation_model" => "App\\Models\\Basics\\Salutation",
@@ -133,7 +135,7 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
         );
 
         $this->addFormField("name", "text", "Name",
-            "required",
+            ["required"],
             [
                 "value" => "Beispiel für ein Standardwert",
             ]
@@ -141,8 +143,8 @@ class UserCrud extends CrudMain implements CrudChildMinimumTableInterface
 
         $this->addFormField("email", "email", "E-Mail",
             [
-                "create" => "required|email|unique:users,email",
-                "edit" => "required|email",
+                "create" => ["required","email","unique:users,email"],
+                "edit" => ["required","email"],
             ],
             [
                 // global config for all forms

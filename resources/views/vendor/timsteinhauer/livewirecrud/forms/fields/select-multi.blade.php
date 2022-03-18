@@ -12,6 +12,10 @@
         @endforeach
     </select>
 
+    @if( isset($config["prefix"]))
+        <span class="input-group-text">{!! $config["prefix"] !!}</span>
+    @endif
+
     @error($keyPath)
     <div class="invalid-feedback">
         {{ $message }}
